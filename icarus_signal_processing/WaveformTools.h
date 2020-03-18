@@ -194,7 +194,7 @@ template <typename T>  inline void WaveformTools<T>::getTruncatedRMS(const std::
     // Alternative to sorting is to remove elements outside of a cut range...
     T rmsCut = nSig * rmsFull;
     
-    typename std::vector<T>::iterator newEndItr = std::remove_if(locWaveform.begin(),locWaveform.end(),[rmsCut](const auto& val){return std::abs(val) > rmsCut;});
+    typename std::vector<T>::iterator newEndItr = std::remove_if(locWaveform.begin(),locWaveform.end(),[rmsCut](const T& val){return std::abs(val) > rmsCut;});
 
     rmsTrunc = std::inner_product(locWaveform.begin(), newEndItr, locWaveform.begin(), 0.);
     nTrunc   = std::distance(locWaveform.begin(),newEndItr);
