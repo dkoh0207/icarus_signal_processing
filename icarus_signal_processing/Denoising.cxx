@@ -267,6 +267,8 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(
   std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
   std::chrono::high_resolution_clock::time_point noiseStart = selStop;
 
+  std::vector<T> v(nGroups);
+
   for (size_t i=0; i<nTicks; ++i) 
   {
     for (size_t j=0; j<nGroups; ++j) 
@@ -275,7 +277,6 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(
       size_t group_end = (j+1) * grouping;
       // Compute median.
       size_t         idxV(0);
-      std::vector<T> v(nGroups);
 
       for (size_t c=group_start; c<group_end; ++c) 
       {
@@ -285,22 +286,20 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(
       T median = (T) 0;
       if (idxV > 0) 
       {
-        v.resize(idxV);
-
         if (idxV % 2 == 0) 
         {
           const auto m1 = v.begin() + idxV / 2 - 1;
           const auto m2 = v.begin() + idxV / 2;
-          std::nth_element(v.begin(), m1, v.end());
+          std::nth_element(v.begin(), m1, v.begin() + idxV);
           const auto e1 = *m1;
-          std::nth_element(v.begin(), m2, v.end());
+          std::nth_element(v.begin(), m2, v.begin() + idxV);
           const auto e2 = *m2;
           median = (e1 + e2) / 2.0;
         } 
         else 
         {
           const auto m = v.begin() + idxV / 2;
-          std::nth_element(v.begin(), m, v.end());
+          std::nth_element(v.begin(), m, v.begin() + idxV);
           median = *m;
         }
       }
