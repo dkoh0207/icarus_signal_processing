@@ -267,7 +267,7 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(
   std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
   std::chrono::high_resolution_clock::time_point noiseStart = selStop;
 
-  std::vector<T> v(nGroups);
+  std::vector<T> v(grouping);
 
   for (size_t i=0; i<nTicks; ++i) 
   {
