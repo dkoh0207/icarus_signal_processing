@@ -274,19 +274,23 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(
       size_t group_start = j * grouping;
       size_t group_end = (j+1) * grouping;
       // Compute median.
-      std::vector<T> v;
+      size_t         idxV(0);
+      std::vector<T> v(nGroups);
+
       for (size_t c=group_start; c<group_end; ++c) 
       {
-        if (!selectVals[c][i]) v.emplace_back(filteredWaveforms[c][i]);
+        if (!selectVals[c][i]) v[idxV++] = filteredWaveforms[c][i];
       }
 
       T median = (T) 0;
-      if (v.size() > 0) 
+      if (idxV > 0) 
       {
-        if (v.size() % 2 == 0) 
+        v.resize(idxV);
+
+        if (idxV % 2 == 0) 
         {
-          const auto m1 = v.begin() + v.size() / 2 - 1;
-          const auto m2 = v.begin() + v.size() / 2;
+          const auto m1 = v.begin() + idxV / 2 - 1;
+          const auto m2 = v.begin() + idxV / 2;
           std::nth_element(v.begin(), m1, v.end());
           const auto e1 = *m1;
           std::nth_element(v.begin(), m2, v.end());
@@ -295,20 +299,20 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(
         } 
         else 
         {
-          const auto m = v.begin() + v.size() / 2;
+          const auto m = v.begin() + idxV / 2;
           std::nth_element(v.begin(), m, v.end());
           median = *m;
         }
       }
       correctedMedians[j][i] = median;
-      for (auto k=group_start; k<group_end; ++k) 
-      {
-        if (!selectVals[k][i]) {
-          waveLessCoherent[k][i] = filteredWaveforms[k][i] - median;
-        } else {
-          waveLessCoherent[k][i] = filteredWaveforms[k][i];
-        }
-      }
+      for (auto k=group_start; k<group_end; ++k) waveLessCoherent[k][i] = filteredWaveforms[k][i] - median;
+//    {
+//      if (!selectVals[k][i]) {
+//        waveLessCoherent[k][i] = filteredWaveforms[k][i] - median;
+//      } else {
+//        waveLessCoherent[k][i] = filteredWaveforms[k][i];
+//      }
+//      }
     }
   }
 
