@@ -259,25 +259,32 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(
   }
 
   std::chrono::high_resolution_clock::time_point morphStop  = std::chrono::high_resolution_clock::now();
-  std::chrono::high_resolution_clock::time_point noiseStart = morphStop;
+  std::chrono::high_resolution_clock::time_point selStart = morphStop;
 
   getSelectVals(filteredWaveforms, morphedWaveforms, 
     selectVals, roi, window, thresholdFactor);
 
-  for (size_t i=0; i<nTicks; ++i) {
-    for (size_t j=0; j<nGroups; ++j) {
+  std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
+  std::chrono::high_resolution_clock::time_point noiseStart = selStop;
+
+  for (size_t i=0; i<nTicks; ++i) 
+  {
+    for (size_t j=0; j<nGroups; ++j) 
+    {
       size_t group_start = j * grouping;
       size_t group_end = (j+1) * grouping;
       // Compute median.
       std::vector<T> v;
-      for (size_t c=group_start; c<group_end; ++c) {
-        if (!selectVals[c][i]) {
-          v.push_back(filteredWaveforms[c][i]);
-        }
+      for (size_t c=group_start; c<group_end; ++c) 
+      {
+        if (!selectVals[c][i]) v.emplace_back(filteredWaveforms[c][i]);
       }
+
       T median = (T) 0;
-      if (v.size() > 0) {
-        if (v.size() % 2 == 0) {
+      if (v.size() > 0) 
+      {
+        if (v.size() % 2 == 0) 
+        {
           const auto m1 = v.begin() + v.size() / 2 - 1;
           const auto m2 = v.begin() + v.size() / 2;
           std::nth_element(v.begin(), m1, v.end());
@@ -285,14 +292,17 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(
           std::nth_element(v.begin(), m2, v.end());
           const auto e2 = *m2;
           median = (e1 + e2) / 2.0;
-        } else {
+        } 
+        else 
+        {
           const auto m = v.begin() + v.size() / 2;
           std::nth_element(v.begin(), m, v.end());
           median = *m;
         }
       }
       correctedMedians[j][i] = median;
-      for (auto k=group_start; k<group_end; ++k) {
+      for (auto k=group_start; k<group_end; ++k) 
+      {
         if (!selectVals[k][i]) {
           waveLessCoherent[k][i] = filteredWaveforms[k][i] - median;
         } else {
@@ -305,15 +315,13 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(
   std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
 
   T rms = (T) 0;
-  for (size_t i=0; i<nGroups; ++i) {
-    for (size_t j=0; j<nTicks; ++j) {
+  for (size_t i=0; i<nGroups; ++i) 
+  {
+    for (size_t j=0; j<nTicks; ++j) 
+    {
       std::vector<T> v;
-      for (size_t k=i*grouping; k<(i+1)*grouping; ++k) {
-        v.push_back(waveLessCoherent[k][j]);
-      }
-      rms = std::sqrt(
-        std::inner_product(
-          v.begin(), v.end(), v.begin(), 0.) / T(v.size()));
+      for (size_t k=i*grouping; k<(i+1)*grouping; ++k) v.emplace_back(waveLessCoherent[k][j]);
+      rms = std::sqrt(std::inner_product(v.begin(), v.end(), v.begin(), 0.) / T(v.size()));
       intrinsicRMS[i][j] = (T) rms;
     }
   }
@@ -323,9 +331,11 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(
   std::chrono::duration<double> funcTime   = std::chrono::duration_cast<std::chrono::duration<double>>(funcStopTime - funcStartTime);
   std::chrono::duration<double> resizeTime = std::chrono::duration_cast<std::chrono::duration<double>>(resizeStop - resizeStart);
   std::chrono::duration<double> morphTime  = std::chrono::duration_cast<std::chrono::duration<double>>(morphStop - morphStart);
+  std::chrono::duration<double> selTime    = std::chrono::duration_cast<std::chrono::duration<double>>(selStop - selStart);
   std::chrono::duration<double> noiseTime  = std::chrono::duration_cast<std::chrono::duration<double>>(noiseStop - noiseStart);
 
-  std::cout << "*** Denoising ***  - resize: " << resizeTime.count() << ", morph: " << morphTime.count() << ", noise: " << noiseTime.count() << ", total: " << funcTime.count() << std::endl;
+  std::cout << "*** Denoising ***  - # channels: " << numChannels << ", ticks: " << nTicks << ", groups: " << nGroups << std::endl;
+  std::cout << "*** Denoising ***  - resize: " << resizeTime.count() << ", morph: " << morphTime.count() << ", sel: " << selTime.count() << ", noise: " << noiseTime.count() << ", total: " << funcTime.count() << std::endl;
 
   return;
 }
