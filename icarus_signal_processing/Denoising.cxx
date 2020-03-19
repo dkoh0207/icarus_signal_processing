@@ -276,7 +276,7 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(
       size_t group_start = j * grouping;
       size_t group_end = (j+1) * grouping;
       // Compute median.
-      size_t         idxV(0);
+      size_t idxV(0);
 
       for (size_t c=group_start; c<group_end; ++c) 
       {
@@ -322,9 +322,9 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(
   {
     for (size_t j=0; j<nTicks; ++j) 
     {
-      std::vector<T> v;
-      for (size_t k=i*grouping; k<(i+1)*grouping; ++k) v.emplace_back(waveLessCoherent[k][j]);
-      rms = std::sqrt(std::inner_product(v.begin(), v.end(), v.begin(), 0.) / T(v.size()));
+      size_t idxV(0);
+      for (size_t k=i*grouping; k<(i+1)*grouping; ++k) v[idxV++] = waveLessCoherent[k][j];
+      rms = std::sqrt(std::inner_product(v.begin(), v.begin()+idxV, v.begin(), 0.) / T(v.size()));
       intrinsicRMS[i][j] = (T) rms;
     }
   }
