@@ -40,10 +40,10 @@ public:
 
     void triangleSmooth(const Waveform<T>&, Waveform<T>&, size_t = 0)                                        const;
     void medianSmooth(  const Waveform<T>&, Waveform<T>&, size_t = 3)                                        const;
-    void getTruncatedMean(const Waveform<T>&, T&, int&)                                                      const;
+    void getTruncatedMean(const Waveform<T>&, T&, int&, int&)                                                const;
     void getTruncatedRMS(const Waveform<T>&, T, T&, T&, int&)                                                const;
-    void getTruncatedMeanRMS(const Waveform<T>&, T, T&, T&, T&, int&)                                        const;
-    void getPedestalCorrectedWaveform(const Waveform<T>&, Waveform<T>&, T, T&, T&, T&, int&)                 const;
+    void getTruncatedMeanRMS(const Waveform<T>&, T, T&, T&, T&, int&, int&)                                  const;
+    void getPedestalCorrectedWaveform(const Waveform<T>&, Waveform<T>&, T, T&, T&, T&, int&, int&)           const;
     void firstDerivative(const Waveform<T>&,  Waveform<T>&)                                                  const;
     void findPeaks(typename Waveform<T>::iterator, typename Waveform<T>::iterator, PeakTupleVec&, T, size_t) const;
 
@@ -130,7 +130,7 @@ template <typename T>  inline void WaveformTools<T>::medianSmooth(const std::vec
     return;
 }
 
-template <typename T>  inline void WaveformTools<T>::getTruncatedMean(const std::vector<T>& waveform, T& mean, int& nTrunc) const
+template <typename T>  inline void WaveformTools<T>::getTruncatedMean(const std::vector<T>& waveform, T& mean, int& nTrunc, int& range) const
 {
     // We need to get a reliable estimate of the mean and can't assume the input waveform will be ~zero mean...
     // Basic idea is to find the most probable value in the ROI presented to us
@@ -141,7 +141,8 @@ template <typename T>  inline void WaveformTools<T>::getTruncatedMean(const std:
     int minValInt = std::floor(minVal);
     T   maxVal    = *minMaxValItr.second;
     int maxValInt = std::ceil(maxVal);
-    int range     = maxValInt - minValInt + 1;
+
+    range = maxValInt - minValInt + 1;
     
     std::vector<T> frequencyVec(range, 0);
     int            mpCount(0);
@@ -203,9 +204,9 @@ template <typename T>  inline void WaveformTools<T>::getTruncatedRMS(const std::
     return;
 }
 
-template <typename T>  inline void WaveformTools<T>::getTruncatedMeanRMS(const std::vector<T>& waveform, T nSig, T& mean, T& rmsFull, T& rmsTrunc, int& nTrunc) const
+template <typename T>  inline void WaveformTools<T>::getTruncatedMeanRMS(const std::vector<T>& waveform, T nSig, T& mean, T& rmsFull, T& rmsTrunc, int& nTrunc, int& range) const
 {
-    getTruncatedMean(waveform, mean, nTrunc);
+    getTruncatedMean(waveform, mean, nTrunc, range);
     getTruncatedRMS(waveform, nSig, rmsFull, rmsTrunc, nTrunc);
     
     return;
@@ -218,10 +219,11 @@ template <typename T>  inline void WaveformTools<T>::getPedestalCorrectedWavefor
                                                                                   T&                    mean,
                                                                                   T&                    rmsFull, 
                                                                                   T&                    rmsTrunc, 
-                                                                                  int&                  nTrunc) const
+                                                                                  int&                  nTrunc,
+                                                                                  int&                  range) const
 {
     // First determine the mean/pedestal based on an average around the most probable value
-    getTruncatedMean(inputWaveform, mean, nTrunc);
+    getTruncatedMean(inputWaveform, mean, nTrunc, range);
 
     // Do the pedestal correction
     std::transform(inputWaveform.begin(),inputWaveform.end(),outputWaveform.begin(),std::bind(std::minus<T>(),std::placeholders::_1,mean));
