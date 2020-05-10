@@ -207,7 +207,12 @@ template <typename T>  inline void WaveformTools<T>::getTruncatedRMS(const std::
 template <typename T>  inline void WaveformTools<T>::getTruncatedMeanRMS(const std::vector<T>& waveform, T nSig, T& mean, T& rmsFull, T& rmsTrunc, int& nTrunc, int& range) const
 {
     getTruncatedMean(waveform, mean, nTrunc, range);
-    getTruncatedRMS(waveform, nSig, rmsFull, rmsTrunc, nTrunc);
+
+    std::vector<T> zeroSuppressed(waveform.size());
+
+    std::transform(waveform.begin(),waveform.end(),zeroSuppressed.begin(),std::bind(std::minus<T>(),std::placeholders::_1,mean));
+
+    getTruncatedRMS(zeroSuppressed, nSig, rmsFull, rmsTrunc, nTrunc);
     
     return;
 }
