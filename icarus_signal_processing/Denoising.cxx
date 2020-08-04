@@ -296,7 +296,7 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(std::vector<std:
   std::chrono::duration<double> noiseTime  = std::chrono::duration_cast<std::chrono::duration<double>>(noiseStop - noiseStart);
 
   std::cout << "*** Denoising ***  - # channels: " << numChannels << ", ticks: " << nTicks << ", groups: " << nGroups << std::endl;
-  std::cout << "*** Denoising ***  - resize: " << resizeTime.count() << ", morph: " << morphTime.count() << ", sel: " << selTime.count() << ", noise: " << noiseTime.count() << ", total: " << funcTime.count() << std::endl;
+  std::cout << "                   - resize: " << resizeTime.count() << ", morph: " << morphTime.count() << ", sel: " << selTime.count() << ", noise: " << noiseTime.count() << ", total: " << funcTime.count() << std::endl;
 
   return;
 }

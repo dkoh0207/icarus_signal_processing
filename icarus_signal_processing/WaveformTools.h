@@ -65,7 +65,7 @@ private:
 //----------------------------------------------------------------------
 // Constructor.
 template <typename T>  inline WaveformTools<T>::WaveformTools() :
-    fMinRange(4)
+    fMinRange(10)
 {
     return;
 }
@@ -110,7 +110,10 @@ template <typename T>  inline void WaveformTools<T>::medianSmooth(const std::vec
     size_t smoothBin = medianBin;
     
     // First bins are not smoothed
-    std::copy(startItr, startItr + medianBin, smoothVec.begin());
+    std::copy(startItr, startItr + nBins/2, smoothVec.begin());
+
+    // Nor are the last
+    std::copy(stopItr - nBins/2, stopItr, smoothVec.end() - nBins/2);
     
     while(std::distance(startItr,stopItr) > 0)
     {
@@ -130,8 +133,13 @@ template <typename T>  inline void WaveformTools<T>::medianSmooth(const std::vec
     return;
 }
 
-template <typename T>  inline void WaveformTools<T>::getTruncatedMean(const std::vector<T>& waveform, T& mean, int& nTrunc, int& range) const
+template <typename T>  inline void WaveformTools<T>::getTruncatedMean(const std::vector<T>& waveformIn, T& mean, int& nTrunc, int& range) const
 {
+    // Try smoothing first to really find the baseline
+    std::vector<T> waveform;
+
+    medianSmooth(waveformIn, waveform, 7);
+    
     // We need to get a reliable estimate of the mean and can't assume the input waveform will be ~zero mean...
     // Basic idea is to find the most probable value in the ROI presented to us
     // From that we can develop an average of the true baseline of the ROI.
