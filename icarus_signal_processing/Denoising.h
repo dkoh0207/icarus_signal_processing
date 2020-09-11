@@ -22,7 +22,7 @@
 #include <numeric>
 #include <cmath>
 #include <functional>
-#include "Morph1D.h"
+#include "MorphologicalFunctions1D.h"
 #include "Morph2D.h"
 #include "ICARUSSigProcDefs.h"
 
@@ -40,38 +40,41 @@ public:
   /// Default constructor
   Denoising(){}
 
-  void getSelectVals(const ArrayShort&,
-                     const ArrayShort&,
-                     ArrayBool&,
-                     ArrayBool&,
+  void getSelectVals(ArrayShort::const_iterator,
+                     ArrayShort::const_iterator,
+                     ArrayBool::iterator,
+                     ArrayBool::iterator,
+                     const unsigned int,
                      const unsigned int,
                      const float);
 
   void getSelectVals(
-    const ArrayFloat&,
-    const ArrayFloat&,
-    ArrayBool&,
-    ArrayBool&,
+    ArrayFloat::const_iterator,
+    ArrayFloat::const_iterator,
+    ArrayBool::iterator,
+    ArrayBool::iterator,
+    const unsigned int,
     const unsigned int,
     const float);
 
   void getSelectVals(
-    const ArrayDouble&,
-    const ArrayDouble&,
-    ArrayBool&,
-    ArrayBool&,
+    ArrayDouble::const_iterator,
+    ArrayDouble::const_iterator,
+    ArrayBool::iterator,
+    ArrayBool::iterator,
+    const unsigned int,
     const unsigned int,
     const float);
 
   void removeCoherentNoise1D(
-    ArrayShort&,
-    const ArrayShort&,
-    ArrayShort&,
-    ArrayShort&,
-    ArrayBool&,
-    ArrayBool&,
-    ArrayShort&,
-    const char,
+    ArrayShort::iterator,
+    ArrayShort::const_iterator,
+    ArrayShort::iterator,
+    ArrayShort::iterator,
+    ArrayBool::iterator,
+    ArrayBool::iterator,
+    ArrayShort::iterator,
+    FilterFunctionVec::const_iterator,
     const unsigned int,
     const unsigned int,
     const unsigned int,
@@ -79,14 +82,14 @@ public:
   );
 
   void removeCoherentNoise1D(
-    ArrayFloat&,
-    const ArrayFloat&,
-    ArrayFloat&,
-    ArrayFloat&,
-    ArrayBool&,
-    ArrayBool&,
-    ArrayFloat&,
-    const char,
+    ArrayFloat::iterator,
+    ArrayFloat::const_iterator,
+    ArrayFloat::iterator,
+    ArrayFloat::iterator,
+    ArrayBool::iterator,
+    ArrayBool::iterator,
+    ArrayFloat::iterator,
+    FilterFunctionVec::const_iterator,
     const unsigned int,
     const unsigned int,
     const unsigned int,
@@ -94,14 +97,14 @@ public:
   );
 
   void removeCoherentNoise1D(
-    ArrayDouble&, 
-    const ArrayDouble&,
-    ArrayDouble&,
-    ArrayDouble&,
-    ArrayBool&,
-    ArrayBool&,
-    ArrayDouble&,
-    const char,
+    ArrayDouble::iterator, 
+    ArrayDouble::const_iterator,
+    ArrayDouble::iterator,
+    ArrayDouble::iterator,
+    ArrayBool::iterator,
+    ArrayBool::iterator,
+    ArrayDouble::iterator,
+    FilterFunctionVec::const_iterator,
     const unsigned int,
     const unsigned int,
     const unsigned int,
@@ -159,28 +162,29 @@ public:
 private:
   template <typename T>
   void getSelectVals(
-    const std::vector<std::vector<T> >& waveforms,
-    const std::vector<std::vector<T> >& morphedWaveforms,
-    ArrayBool& selectVals,
-    ArrayBool& roi,
-    const unsigned int window,
-    const float thresholdFactor
+    typename std::vector<std::vector<T>>::const_iterator waveforms,
+    typename std::vector<std::vector<T>>::const_iterator morphedWaveforms,
+    ArrayBool::iterator                                  selectVals,
+    ArrayBool::iterator                                  roi,
+    const unsigned int                                   numChannels,
+    const unsigned int                                   window,
+    const float                                          thresholdFactor
   );
 
   template <typename T>
   void removeCoherentNoise1D(
-    std::vector<std::vector<T> >& waveLessCoherent, 
-    const std::vector<std::vector<T> >& filteredWaveforms, 
-    std::vector<std::vector<T> >& morphedWaveforms, 
-    std::vector<std::vector<T> >& intrinsicRMS,
-    ArrayBool& selectVals,
-    ArrayBool& roi,
-    std::vector<std::vector<T> >& correctedMedians,
-    const char filterName='d', 
-    const unsigned int grouping=64,
-    const unsigned int structuringElement=5,
-    const unsigned int window=0,
-    const float thresholdFactor=2.5);
+    typename std::vector<std::vector<T>>::iterator       waveLessCoherent, 
+    typename std::vector<std::vector<T>>::const_iterator filteredWaveforms, 
+    typename std::vector<std::vector<T>>::iterator       morphedWaveforms, 
+    typename std::vector<std::vector<T>>::iterator       intrinsicRMS,
+    ArrayBool::iterator                                  selectVals,
+    ArrayBool::iterator                                  roi,
+    typename std::vector<std::vector<T> >::iterator      correctedMedians,
+    FilterFunctionVec::const_iterator                    filterFunctions, 
+    const unsigned int                                   numChannels=64,
+    const unsigned int                                   grouping=64,
+    const unsigned int                                   window=0,
+    const float                                          thresholdFactor=2.5);
 
   template <typename T>
   void removeCoherentNoise2D(

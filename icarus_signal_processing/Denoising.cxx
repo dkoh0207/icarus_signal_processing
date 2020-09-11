@@ -7,298 +7,275 @@
 
 
 void icarus_signal_processing::Denoising::getSelectVals(
-  const ArrayShort& waveforms,
-  const ArrayShort& morphedWaveforms,
-  ArrayBool& selectVals,
-  ArrayBool& roi,
-  const unsigned int window,
-  const float thresholdFactor)
+  ArrayShort::const_iterator waveforms,
+  ArrayShort::const_iterator morphedWaveforms,
+  ArrayBool::iterator        selectVals,
+  ArrayBool::iterator        roi,
+  const unsigned int         numChannels,
+  const unsigned int         window,
+  const float                thresholdFactor)
 {
   getSelectVals<short>(waveforms, morphedWaveforms, selectVals,
-    roi, window, thresholdFactor);
+    roi, numChannels, window, thresholdFactor);
 }
 
 void icarus_signal_processing::Denoising::getSelectVals(
-  const ArrayFloat& waveforms,
-  const ArrayFloat& morphedWaveforms,
-  ArrayBool& selectVals,
-  ArrayBool& roi,
-  const unsigned int window,
-  const float thresholdFactor)
+  ArrayFloat::const_iterator waveforms,
+  ArrayFloat::const_iterator morphedWaveforms,
+  ArrayBool::iterator        selectVals,
+  ArrayBool::iterator        roi,
+  const unsigned int         numChannels,
+  const unsigned int         window,
+  const float                thresholdFactor)
 {
   getSelectVals<float>(waveforms, morphedWaveforms, selectVals,
-    roi, window, thresholdFactor);
+    roi, numChannels, window, thresholdFactor);
 }
 
 void icarus_signal_processing::Denoising::getSelectVals(
-  const ArrayDouble& waveforms,
-  const ArrayDouble& morphedWaveforms,
-  ArrayBool& selectVals,
-  ArrayBool& roi,
-  const unsigned int window,
-  const float thresholdFactor)
+  ArrayDouble::const_iterator waveforms,
+  ArrayDouble::const_iterator morphedWaveforms,
+  ArrayBool::iterator         selectVals,
+  ArrayBool::iterator         roi,
+  const unsigned int          numChannels,
+  const unsigned int          window,
+  const float                 thresholdFactor)
 {
   getSelectVals<double>(waveforms, morphedWaveforms, selectVals,
-    roi, window, thresholdFactor);
+    roi, numChannels, window, thresholdFactor);
 }
 
 template <typename T>
 void icarus_signal_processing::Denoising::getSelectVals(
-  const std::vector<std::vector<T>>& waveforms,
-  const std::vector<std::vector<T>>& morphedWaveforms,
-  ArrayBool& selectVals,
-  ArrayBool& roi,
-  const unsigned int window,
-  const float thresholdFactor)
+  typename std::vector<std::vector<T>>::const_iterator waveformsItr,
+  typename std::vector<std::vector<T>>::const_iterator morphedWaveformsItr,
+  ArrayBool::iterator                                  selectValsItr,
+  ArrayBool::iterator                                  roiItr,
+  const unsigned int                                   numChannels,
+  const unsigned int                                   window,
+  const float                                          thresholdFactor)
 {
-  auto numChannels = waveforms.size();
-  auto nTicks = waveforms.at(0).size();
+    auto nTicks = waveformsItr[0].size();
 
-  for (size_t i=0; i<numChannels; ++i) {
-    T median = 0.0;
-    std::vector<T> localVec = morphedWaveforms[i];
-    if (localVec.size() % 2 == 0) {
-      const auto m1 = localVec.begin() + localVec.size() / 2 - 1;
-      const auto m2 = localVec.begin() + localVec.size() / 2;
-      std::nth_element(localVec.begin(), m1, localVec.end());
-      const auto e1 = *m1;
-      std::nth_element(localVec.begin(), m2, localVec.end());
-      const auto e2 = *m2;
-      median = (e1 + e2) / 2.0;
-    } else {
-      const auto m = localVec.begin() + localVec.size() / 2;
-      std::nth_element(localVec.begin(), m, localVec.end());
-      median = *m;
-    }
-    std::vector<T> baseVec;
-    baseVec.resize(localVec.size());
-    for (size_t j=0; j<baseVec.size(); ++j) {
-      baseVec[j] = morphedWaveforms[i][j] - median;
-    }
-    float rms;
-    rms = std::sqrt(std::inner_product(baseVec.begin(), 
-      baseVec.end(), baseVec.begin(), 0.) / float(baseVec.size()));
-    float threshold;
-    threshold = thresholdFactor * rms;
-
-    for (size_t j=0; j<nTicks; ++j) {
-      if (std::fabs(morphedWaveforms[i][j]) > threshold) {
-        // Check Bounds
-        selectVals[i][j] = true;
-        int lb = j - (int) window;
-        int ub = j + (int) window + 1;
-        size_t lowerBound = std::max(lb, 0);
-        size_t upperBound = std::min(ub, (int) nTicks);
-        for (size_t k=lowerBound; k<upperBound; ++k) {
-          roi[i][k] = true;
+    for (size_t i=0; i<numChannels; ++i) 
+    {
+        T median = 0.0;
+        std::vector<T> localVec = morphedWaveformsItr[i];
+        if (localVec.size() % 2 == 0) {
+            const auto m1 = localVec.begin() + localVec.size() / 2 - 1;
+            const auto m2 = localVec.begin() + localVec.size() / 2;
+            std::nth_element(localVec.begin(), m1, localVec.end());
+            const auto e1 = *m1;
+            std::nth_element(localVec.begin(), m2, localVec.end());
+            const auto e2 = *m2;
+            median = (e1 + e2) / 2.0;
+        } else {
+            const auto m = localVec.begin() + localVec.size() / 2;
+            std::nth_element(localVec.begin(), m, localVec.end());
+            median = *m;
         }
-      } else {
-        selectVals[i][j] = false;
-      }
+        std::vector<T> baseVec;
+        baseVec.resize(localVec.size());
+        for (size_t j=0; j<baseVec.size(); ++j) {
+            baseVec[j] = morphedWaveformsItr[i][j] - median;
+        }
+        float rms;
+        rms = std::sqrt(std::inner_product(baseVec.begin(), baseVec.end(), baseVec.begin(), 0.) / float(baseVec.size()));
+        float threshold;
+        threshold = thresholdFactor * rms;
+
+        for (size_t j=0; j<nTicks; ++j) {
+            if (std::fabs(morphedWaveformsItr[i][j]) > threshold) {
+                // Check Bounds
+                selectValsItr[i][j] = true;
+                int lb = j - (int) window;
+                int ub = j + (int) window + 1;
+                size_t lowerBound = std::max(lb, 0);
+                size_t upperBound = std::min(ub, (int) nTicks);
+                for (size_t k=lowerBound; k<upperBound; ++k) {
+                    roiItr[i][k] = true;
+                }
+            } else {
+                selectValsItr[i][j] = false;
+            }
+        }
     }
-  }
-  return;
+
+    return;
 }
 
 
 void icarus_signal_processing::Denoising::removeCoherentNoise1D(
-  ArrayShort& waveLessCoherent,
-  const ArrayShort& filteredWaveforms,
-  ArrayShort& morphedWaveforms,
-  ArrayShort& intrinsicRMS,
-  ArrayBool& selectVals,
-  ArrayBool& roi,
-  ArrayShort& correctedMedians,
-  const char filterName,
-  const unsigned int grouping,
-  const unsigned int structuringElement,
-  const unsigned int window,
-  const float thresholdFactor)
+  ArrayShort::iterator              waveLessCoherent,
+  ArrayShort::const_iterator        filteredWaveforms,
+  ArrayShort::iterator              morphedWaveforms,
+  ArrayShort::iterator              intrinsicRMS,
+  ArrayBool::iterator               selectVals,
+  ArrayBool::iterator               roi,
+  ArrayShort::iterator              correctedMedians,
+  FilterFunctionVec::const_iterator filterFunctions,
+  const unsigned int                numChannels,
+  const unsigned int                grouping,
+  const unsigned int                window,
+  const float                       thresholdFactor)
 {
   removeCoherentNoise1D<short>(
     waveLessCoherent, filteredWaveforms, morphedWaveforms, 
-    intrinsicRMS, selectVals, roi, correctedMedians,
-    filterName, grouping, structuringElement, window, thresholdFactor);
+    intrinsicRMS, selectVals, roi, correctedMedians, filterFunctions, numChannels,
+    grouping, window, thresholdFactor);
   return;
 }
 
 void icarus_signal_processing::Denoising::removeCoherentNoise1D(
-  ArrayFloat& waveLessCoherent,
-  const ArrayFloat& filteredWaveforms,
-  ArrayFloat& morphedWaveforms,
-  ArrayFloat& intrinsicRMS,
-  ArrayBool& selectVals,
-  ArrayBool& roi,
-  ArrayFloat& correctedMedians,
-  const char filterName,
-  const unsigned int grouping,
-  const unsigned int structuringElement,
-  const unsigned int window,
-  const float thresholdFactor)
+  ArrayFloat::iterator              waveLessCoherent,
+  ArrayFloat::const_iterator        filteredWaveforms,
+  ArrayFloat::iterator              morphedWaveforms,
+  ArrayFloat::iterator              intrinsicRMS,
+  ArrayBool::iterator               selectVals,
+  ArrayBool::iterator               roi,
+  ArrayFloat::iterator              correctedMedians,
+  FilterFunctionVec::const_iterator filterFunctions,
+  const unsigned int                numChannels,
+  const unsigned int                grouping,
+  const unsigned int                window,
+  const float                       thresholdFactor)
 {
   removeCoherentNoise1D<float>(
     waveLessCoherent, filteredWaveforms, morphedWaveforms, 
-    intrinsicRMS, selectVals, roi, correctedMedians,
-    filterName, grouping, structuringElement, window, thresholdFactor);
+    intrinsicRMS, selectVals, roi, correctedMedians, filterFunctions, numChannels,
+    grouping, window, thresholdFactor);
   return;
 }
 
 void icarus_signal_processing::Denoising::removeCoherentNoise1D(
-  ArrayDouble& waveLessCoherent,
-  const ArrayDouble& filteredWaveforms,
-  ArrayDouble& morphedWaveforms,
-  ArrayDouble& intrinsicRMS,
-  ArrayBool& selectVals,
-  ArrayBool& roi,
-  ArrayDouble& correctedMedians,
-  const char filterName,
-  const unsigned int grouping,
-  const unsigned int structuringElement,
-  const unsigned int window,
-  const float thresholdFactor)
+  ArrayDouble::iterator             waveLessCoherent,
+  ArrayDouble::const_iterator       filteredWaveforms,
+  ArrayDouble::iterator             morphedWaveforms,
+  ArrayDouble::iterator             intrinsicRMS,
+  ArrayBool::iterator               selectVals,
+  ArrayBool::iterator               roi,
+  ArrayDouble::iterator             correctedMedians,
+  FilterFunctionVec::const_iterator filterFunctions,
+  const unsigned int                numChannels,
+  const unsigned int                grouping,
+  const unsigned int                window,
+  const float                       thresholdFactor)
 {
   removeCoherentNoise1D<double>(
     waveLessCoherent, filteredWaveforms, morphedWaveforms, 
-    intrinsicRMS, selectVals, roi, correctedMedians,
-    filterName, grouping, structuringElement, window, thresholdFactor);
+    intrinsicRMS, selectVals, roi, correctedMedians, filterFunctions, numChannels,
+    grouping, window, thresholdFactor);
   return;
 }
 
 template <typename T>
-void icarus_signal_processing::Denoising::removeCoherentNoise1D(std::vector<std::vector<T>>&       waveLessCoherent,
-                                                                const std::vector<std::vector<T>>& filteredWaveforms,
-                                                                std::vector<std::vector<T>>&       morphedWaveforms,
-                                                                std::vector<std::vector<T>>&       intrinsicRMS,
-                                                                ArrayBool&                         selectVals,
-                                                                ArrayBool&                         roi,
-                                                                std::vector<std::vector<T>>&       correctedMedians,
-                                                                const char                         filterName,
-                                                                const unsigned int                 grouping,
-                                                                const unsigned int                 structuringElement,
-                                                                const unsigned int                 window,
-                                                                const float                        thresholdFactor)
+void icarus_signal_processing::Denoising::removeCoherentNoise1D(typename std::vector<std::vector<T>>::iterator       waveLessCoherentItr,
+                                                                typename std::vector<std::vector<T>>::const_iterator filteredWaveformsItr,
+                                                                typename std::vector<std::vector<T>>::iterator       morphedWaveformsItr,
+                                                                typename std::vector<std::vector<T>>::iterator       intrinsicRMSItr,
+                                                                ArrayBool::iterator                                  selectValsItr,
+                                                                ArrayBool::iterator                                  roiItr,
+                                                                typename std::vector<std::vector<T>>::iterator       correctedMediansItr,
+                                                                FilterFunctionVec::const_iterator                    filterFunctions,
+                                                                const unsigned int                                   numChannels,
+                                                                const unsigned int                                   grouping,
+                                                                const unsigned int                                   window,
+                                                                const float                                          thresholdFactor)
 {
-  auto numChannels = filteredWaveforms.size();
-  auto nTicks      = filteredWaveforms[0].size();
-  auto nGroups     = numChannels / grouping;
+    auto nTicks  = filteredWaveformsItr->size();
+    auto nGroups = numChannels / grouping;
 
-  std::chrono::high_resolution_clock::time_point funcStartTime = std::chrono::high_resolution_clock::now();
-  std::chrono::high_resolution_clock::time_point resizeStart   = funcStartTime;
+    std::chrono::high_resolution_clock::time_point funcStartTime = std::chrono::high_resolution_clock::now();
 
-  // Coherent noise subtracted denoised waveforms
-  waveLessCoherent.resize(filteredWaveforms.size(),std::vector<T>(nTicks));
+    std::chrono::high_resolution_clock::time_point morphStart = funcStartTime;
 
-  // Waveform with morphological filter applied
-  morphedWaveforms.resize(filteredWaveforms.size(),std::vector<T>(nTicks));
-
-  // Regions to protect waveform from coherent noise subtraction.
-  selectVals.resize(filteredWaveforms.size(),VectorBool(nTicks));
-
-  roi.resize(filteredWaveforms.size(),VectorBool(nTicks));
-
-  correctedMedians.resize(nGroups,std::vector<T>(nTicks));
-
-  intrinsicRMS.resize(nGroups,std::vector<T>(nTicks));
-
-  std::chrono::high_resolution_clock::time_point resizeStop = std::chrono::high_resolution_clock::now();
-
-  std::chrono::high_resolution_clock::time_point morphStart = resizeStop;
-
-  icarus_signal_processing::Morph1D denoiser;
-
-  switch (filterName) {
-    case 'd':
-      for (size_t i=0; i<numChannels; ++i) denoiser.getDilation(filteredWaveforms[i], structuringElement, morphedWaveforms[i]);
-      break;
-    case 'e':
-      for (size_t i=0; i<numChannels; ++i) denoiser.getErosion(filteredWaveforms[i], structuringElement, morphedWaveforms[i]);
-      break;
-    case 'a':
-      for (size_t i=0; i<numChannels; ++i) denoiser.getAverage(filteredWaveforms[i], structuringElement, morphedWaveforms[i]);
-      break;
-    case 'g':
-      for (size_t i=0; i<numChannels; ++i) denoiser.getGradient(filteredWaveforms[i], structuringElement, morphedWaveforms[i]);
-      break;
-    default:
-      for (size_t i=0; i<numChannels; ++i) denoiser.getDilation(filteredWaveforms[i], structuringElement, morphedWaveforms[i]);
-      break;
-  }
-
-  std::chrono::high_resolution_clock::time_point morphStop  = std::chrono::high_resolution_clock::now();
-  std::chrono::high_resolution_clock::time_point selStart = morphStop;
-
-  getSelectVals(filteredWaveforms, morphedWaveforms, selectVals, roi, window, thresholdFactor);
-
-  std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
-  std::chrono::high_resolution_clock::time_point noiseStart = selStop;
-
-  std::vector<T> v(grouping);
-
-  for (size_t i=0; i<nTicks; ++i) 
-  {
-    for (size_t j=0; j<nGroups; ++j) 
+    for(size_t funcIdx = 0; funcIdx < numChannels; funcIdx++)
     {
-      size_t group_start = j * grouping;
-      size_t group_end = (j+1) * grouping;
-      // Compute median.
-      size_t idxV(0);
+        const icarus_signal_processing::IMorphologicalFunctions1D* func = (*(filterFunctions + funcIdx)).get();
 
-      for (size_t c=group_start; c<group_end; ++c) 
-      {
-        if (!selectVals[c][i]) v[idxV++] = filteredWaveforms[c][i];
-      }
-
-      T median = (T) 0;
-      if (idxV > 0) 
-      {
-        if (idxV % 2 == 0) 
+        if (!func) 
         {
-          const auto m1 = v.begin() + idxV / 2 - 1;
-          const auto m2 = v.begin() + idxV / 2;
-          std::nth_element(v.begin(), m1, v.begin() + idxV);
-          const auto e1 = *m1;
-          std::nth_element(v.begin(), m2, v.begin() + idxV);
-          const auto e2 = *m2;
-          median = (e1 + e2) / 2.0;
-        } 
-        else 
-        {
-          const auto m = v.begin() + idxV / 2;
-          std::nth_element(v.begin(), m, v.begin() + idxV);
-          median = *m;
+            std::cout << "Found null function for funcIdx " << funcIdx << " of " << numChannels << std::endl;
+            continue;
         }
-      }
-      correctedMedians[j][i] = median;
-      for (auto k=group_start; k<group_end; ++k) waveLessCoherent[k][i] = filteredWaveforms[k][i] - median;
+
+        (*func)(*(filteredWaveformsItr + funcIdx), *(morphedWaveformsItr + funcIdx));
     }
-  }
 
-  std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point morphStop  = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point selStart = morphStop;
 
-  T rms = (T) 0;
-  for (size_t i=0; i<nGroups; ++i) 
-  {
-    for (size_t j=0; j<nTicks; ++j) 
+    getSelectVals(filteredWaveformsItr, morphedWaveformsItr, selectValsItr, roiItr, numChannels, window, thresholdFactor);
+
+    std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point noiseStart = selStop;
+
+    std::vector<T> v(grouping);
+
+    for (size_t i=0; i<nTicks; ++i) 
     {
-      size_t idxV(0);
-      for (size_t k=i*grouping; k<(i+1)*grouping; ++k) v[idxV++] = waveLessCoherent[k][j];
-      rms = std::sqrt(std::inner_product(v.begin(), v.begin()+idxV, v.begin(), 0.) / T(v.size()));
-      intrinsicRMS[i][j] = (T) rms;
+        for (size_t j=0; j<nGroups; ++j) 
+        {
+            size_t group_start = j * grouping;
+            size_t group_end = (j+1) * grouping;
+            // Compute median.
+            size_t idxV(0);
+
+            for (size_t c=group_start; c<group_end; ++c) 
+            {
+                if (!selectValsItr[c][i]) v[idxV++] = filteredWaveformsItr[c][i];
+            }
+
+            T median = (T) 0;
+            if (idxV > 0) 
+            {
+                if (idxV % 2 == 0) 
+                {
+                    const auto m1 = v.begin() + idxV / 2 - 1;
+                    const auto m2 = v.begin() + idxV / 2;
+                    std::nth_element(v.begin(), m1, v.begin() + idxV);
+                    const auto e1 = *m1;
+                    std::nth_element(v.begin(), m2, v.begin() + idxV);
+                    const auto e2 = *m2;
+                    median = (e1 + e2) / 2.0;
+                } 
+                else 
+                {
+                    const auto m = v.begin() + idxV / 2;
+                    std::nth_element(v.begin(), m, v.begin() + idxV);
+                    median = *m;
+                }
+            }
+            correctedMediansItr[j][i] = median;
+            for (auto k=group_start; k<group_end; ++k) waveLessCoherentItr[k][i] = filteredWaveformsItr[k][i] - median;
+        }
     }
-  }
 
-  std::chrono::high_resolution_clock::time_point funcStopTime = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
 
-  std::chrono::duration<double> funcTime   = std::chrono::duration_cast<std::chrono::duration<double>>(funcStopTime - funcStartTime);
-  std::chrono::duration<double> resizeTime = std::chrono::duration_cast<std::chrono::duration<double>>(resizeStop - resizeStart);
-  std::chrono::duration<double> morphTime  = std::chrono::duration_cast<std::chrono::duration<double>>(morphStop - morphStart);
-  std::chrono::duration<double> selTime    = std::chrono::duration_cast<std::chrono::duration<double>>(selStop - selStart);
-  std::chrono::duration<double> noiseTime  = std::chrono::duration_cast<std::chrono::duration<double>>(noiseStop - noiseStart);
+    T rms = (T) 0;
+    for (size_t i=0; i<nGroups; ++i) 
+    {
+        for (size_t j=0; j<nTicks; ++j) 
+        {
+            size_t idxV(0);
+            for (size_t k=i*grouping; k<(i+1)*grouping; ++k) v[idxV++] = waveLessCoherentItr[k][j];
+            rms = std::sqrt(std::inner_product(v.begin(), v.begin()+idxV, v.begin(), 0.) / T(v.size()));
+            intrinsicRMSItr[i][j] = (T) rms;
+        }
+    }
 
-  std::cout << "*** Denoising ***  - # channels: " << numChannels << ", ticks: " << nTicks << ", groups: " << nGroups << std::endl;
-  std::cout << "                   - resize: " << resizeTime.count() << ", morph: " << morphTime.count() << ", sel: " << selTime.count() << ", noise: " << noiseTime.count() << ", total: " << funcTime.count() << std::endl;
-
-  return;
+    std::chrono::high_resolution_clock::time_point funcStopTime = std::chrono::high_resolution_clock::now();
+  
+    std::chrono::duration<double> funcTime   = std::chrono::duration_cast<std::chrono::duration<double>>(funcStopTime - funcStartTime);
+    std::chrono::duration<double> morphTime  = std::chrono::duration_cast<std::chrono::duration<double>>(morphStop - morphStart);
+    std::chrono::duration<double> selTime    = std::chrono::duration_cast<std::chrono::duration<double>>(selStop - selStart);
+    std::chrono::duration<double> noiseTime  = std::chrono::duration_cast<std::chrono::duration<double>>(noiseStop - noiseStart);
+  
+    std::cout << "*** Denoising ***  - # channels: " << numChannels << ", ticks: " << nTicks << ", groups: " << nGroups << std::endl;
+    std::cout << "                   - morph: " << morphTime.count() << ", sel: " << selTime.count() << ", noise: " << noiseTime.count() << ", total: " << funcTime.count() << std::endl;
+  
+    return;
 }
 
 
@@ -430,28 +407,28 @@ void icarus_signal_processing::Denoising::removeCoherentNoise2D(
 
   switch (filterName) {
     case 'd':
-      getSelectVals(filteredWaveforms, dilation, 
-        selectVals, roi, window, thresholdFactor);
+      getSelectVals(filteredWaveforms.begin(), dilation.begin(), 
+        selectVals.begin(), roi.begin(), filteredWaveforms.size(), window, thresholdFactor);
       morphedWaveforms = dilation;
       break;
     case 'e':
-      getSelectVals(filteredWaveforms, erosion, 
-        selectVals, roi, window, thresholdFactor);
+      getSelectVals(filteredWaveforms.begin(), erosion.begin(), 
+        selectVals.begin(), roi.begin(), filteredWaveforms.size(), window, thresholdFactor);
       morphedWaveforms = erosion;
       break;
     case 'a':
-      getSelectVals(filteredWaveforms, average, 
-        selectVals, roi, window, thresholdFactor);
+      getSelectVals(filteredWaveforms.begin(), average.begin(), 
+        selectVals.begin(), roi.begin(), filteredWaveforms.size(), window, thresholdFactor);
       morphedWaveforms = average;
       break;
     case 'g':
-      getSelectVals(filteredWaveforms, gradient, 
-        selectVals, roi, window, thresholdFactor);
+      getSelectVals(filteredWaveforms.begin(), gradient.begin(), 
+        selectVals.begin(), roi.begin(), filteredWaveforms.size(), window, thresholdFactor);
       morphedWaveforms = gradient;
       break;
     default:
-      getSelectVals(filteredWaveforms, gradient, 
-        selectVals, roi, window, thresholdFactor);
+      getSelectVals(filteredWaveforms.begin(), gradient.begin(), 
+        selectVals.begin(), roi.begin(), filteredWaveforms.size(), window, thresholdFactor);
       morphedWaveforms = gradient;
       break;
   }
