@@ -46,6 +46,7 @@ template <typename T> void icarus_signal_processing::Dilation1D::getDilation(con
       MODIFIES:
       - dilationVec: Returned Dilation Vector.
     */
+/*
     // Set the window size
     int halfWindowSize(fStructuringElement/2);
 
@@ -80,8 +81,49 @@ template <typename T> void icarus_signal_processing::Dilation1D::getDilation(con
         }
         // Update the vectors
         *maxItr++ = *maxElementItr;
-  }
-  return;
+    }
+*/
+
+    size_t N = inputWaveform.size();
+
+    if (N % fStructuringElement != 0) {
+        std::cout << "Structuring element size must divide the input array size. Returning" << std::endl;
+        return;
+    }
+
+    std::vector<T> suffixArr(N);
+    std::vector<T> prefixArr(N);
+//    dilationVec.resize(N);
+
+    size_t se = (size_t) fStructuringElement;
+
+    for (size_t i=0; i<N; ++i) 
+    {
+        if (i % se == 0) prefixArr[i] = inputWaveform[i];
+        else             prefixArr[i] = std::max(prefixArr[i-1], inputWaveform[i]);
+    }
+
+    for (size_t i=N; i!=0; --i) 
+    {
+        if (i % se == 0) suffixArr[i-1] = inputWaveform[i-1];
+        else             suffixArr[i-1] = std::max(suffixArr[i], inputWaveform[i-1]);
+    }
+
+    int prefixIndex = 0;
+    int suffixIndex = 0;
+
+    for (size_t i=0; i<se/2+1; ++i)    dilationVec[i] = prefixArr[i+se/2];
+
+    for (size_t i=N; i >= N-se/2; --i) dilationVec[i-1] = suffixArr[i-1-se/2];
+
+    for (size_t i=se/2+1; i<N-se/2; ++i) 
+    {
+        prefixIndex    = i + (se - 1) / 2;
+        suffixIndex    = i - (se - 1) / 2;
+        dilationVec[i] = std::max(prefixArr[prefixIndex],suffixArr[suffixIndex]);
+    }
+
+    return;
 }
 
 void Erosion1D::operator()(const Waveform<short>& waveformVec,  
@@ -106,43 +148,107 @@ void Erosion1D::operator()(const Waveform<double>& waveformVec,
 template <typename T> void icarus_signal_processing::Erosion1D::getErosion(const Waveform<T>& inputWaveform,
                                                                            Waveform<T>&       erosionVec) const
 {
-    // Set the window size
-    int halfWindowSize(fStructuringElement/2);
 
-    // Initialize min and max elements
-    std::pair<typename Waveform<T>::const_iterator, typename Waveform<T>::const_iterator> minMaxItr = std::minmax_element(inputWaveform.begin(),inputWaveform.begin()+halfWindowSize);
+    size_t N = inputWaveform.size();
 
-    typename Waveform<T>::const_iterator minElementItr = minMaxItr.first;
-    typename Waveform<T>::const_iterator maxElementItr = minMaxItr.second;
-
-    // Initialize the erosion and dilation vectors
-    erosionVec.resize(inputWaveform.size());
-
-    // Now loop through remaining elements and complete the vectors
-    typename Waveform<T>::iterator minItr = erosionVec.begin();
-
-    for (typename Waveform<T>::const_iterator inputItr = inputWaveform.begin(); inputItr != inputWaveform.end(); inputItr++)
-    {
-        // There are two conditions to check:
-        // 1) is the current min/max element outside the current window?
-        // 2) is the new element smaller/larger than the current min/max?
-        // Make sure we are not running off the end of the vector
-        if (std::distance(inputItr,inputWaveform.end()) > halfWindowSize)
-        {
-            if (std::distance(minElementItr,inputItr) >= halfWindowSize)
-                minElementItr = std::min_element(
-                  inputItr - halfWindowSize, inputItr + halfWindowSize + 1);
-            else if (*(inputItr + halfWindowSize) < *minElementItr)
-                minElementItr = inputItr + halfWindowSize;
-            if (std::distance(maxElementItr,inputItr) >= halfWindowSize)
-                maxElementItr = std::max_element(
-                  inputItr - halfWindowSize, inputItr + halfWindowSize + 1);
-            else if (*(inputItr + halfWindowSize) > *maxElementItr)
-                maxElementItr = inputItr + halfWindowSize;
-        }
-        // Update the vectors
-        *minItr++ = *minElementItr;
+    if (N % fStructuringElement != 0) {
+      std::cout << "Structuring element size must divide the input array size. Returning" << std::endl;
+      return;
     }
+
+    std::vector<T> suffixArr(N);
+    std::vector<T> prefixArr(N);
+//    erosionVec.resize(N);
+
+    size_t se = (size_t) fStructuringElement;
+
+    for (size_t i=0; i<N; ++i) 
+    {
+        if (i % se == 0) prefixArr[i] = inputWaveform[i];
+        else             prefixArr[i] = std::min(prefixArr[i-1], inputWaveform[i]);
+    }
+
+    for (size_t i=N; i!=0; --i) 
+    {
+        if (i % se == 0) suffixArr[i-1] = inputWaveform[i-1];
+        else             suffixArr[i-1] = std::min(suffixArr[i], inputWaveform[i-1]);
+    }
+
+    int prefixIndex = 0;
+    int suffixIndex = 0;
+
+    // Boundary Cases
+    for (size_t i=0; i<se/2+1; ++i)    erosionVec[i] = prefixArr[i+se/2];
+
+    // Boundary Cases
+    for (size_t i=N; i >= N-se/2; --i) erosionVec[i-1] = suffixArr[i-1-se/2];
+
+    // Main Loop
+    for (size_t i=se/2+1; i<N-se/2; ++i) 
+    {
+        prefixIndex = i + (se - 1) / 2;
+        suffixIndex = i - (se - 1) / 2;
+        erosionVec[i] = std::min(prefixArr[prefixIndex],suffixArr[suffixIndex]);
+    }
+
+/*
+  size_t N = inputWaveform.size();
+  size_t k = (size_t) structuringElement;
+  if (N <= k) {
+    std::cout << "Input array size " << N << " must be greater than structuring element size " << k << std::endl;
+    return;
+  }
+  size_t bufferSize = N + 2 * (k/2) + (k - (N % k));
+  size_t windowSize = k/2;
+  size_t paddingSize = k - (N % k);
+  std::vector<T> suffixArr(bufferSize);
+  std::vector<T> prefixArr(bufferSize);
+  dilationVec.resize(N);
+
+  // Padding Operations on Buffers
+  for (size_t i=0; i<windowSize; ++i) {
+    suffixArr[i] = std::numeric_limits<T>::min();
+    prefixArr[i] = std::numeric_limits<T>::min();
+  }
+
+  for (size_t i=N+windowSize; i<bufferSize; ++i) {
+    suffixArr[i] = std::numeric_limits<T>::min();
+    prefixArr[i] = std::numeric_limits<T>::min();
+  }
+
+  // Compute Prefix and Suffix Buffers
+  for (size_t i=0; i<N+paddingSize; ++i) {
+    if (i % k == 0) {
+      prefixArr[i+windowSize] = inputWaveform[i];
+    } else {
+      prefixArr[i+windowSize] = std::max(prefixArr[i+windowSize-1], inputWaveform[i]);
+    }
+  }
+
+  for (size_t i=N+paddingSize; i!=0; --i) {
+    if (i > N) {
+      // Compensate for divisibility padding (must be -inf)
+      continue;
+    }
+    else if (i % k == 0) {
+      suffixArr[i+windowSize-1] = inputWaveform[i-1];
+    } 
+    else {
+      suffixArr[i+windowSize-1] = std::max(suffixArr[i+windowSize], inputWaveform[i-1]);
+    }
+  }
+
+  int prefixIndex = 0;
+  int suffixIndex = 0;
+
+  for (size_t i=0; i<N; ++i) {
+    prefixIndex = i + 2 * windowSize;
+    suffixIndex = i;
+    dilationVec[i] = std::max(prefixArr[prefixIndex],
+      suffixArr[suffixIndex]);
+  }
+*/
+
     return;
 }
 
