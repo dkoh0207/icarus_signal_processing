@@ -32,7 +32,7 @@ template <class T> using Waveform = std::vector<T>;
 template <class T> class WaveformTools
 {
 public:
-    WaveformTools();
+    WaveformTools(int = 10);
     ~WaveformTools() {};
    
     using PeakTuple    = std::tuple<size_t,size_t,size_t>;   // first bin, peak bin, last bin
@@ -40,10 +40,6 @@ public:
 
     void triangleSmooth(const Waveform<T>&, Waveform<T>&, size_t = 0)                                        const;
     void medianSmooth(  const Waveform<T>&, Waveform<T>&, size_t = 3)                                        const;
-    void getTruncatedMean(const Waveform<T>&, T&, int&, int&)                                                const;
-    void getTruncatedRMS(const Waveform<T>&, T, T&, T&, int&)                                                const;
-    void getTruncatedMeanRMS(const Waveform<T>&, T, T&, T&, T&, int&, int&)                                  const;
-    void getPedestalCorrectedWaveform(const Waveform<T>&, Waveform<T>&, T, T&, T&, T&, int&, int&)           const;
     void firstDerivative(const Waveform<T>&,  Waveform<T>&)                                                  const;
     void findPeaks(typename Waveform<T>::iterator, typename Waveform<T>::iterator, PeakTupleVec&, T, size_t) const;
 
@@ -55,6 +51,12 @@ public:
                                              Waveform<T>&) const;
 
     void getOpeningAndClosing(const Waveform<T>&,  const Waveform<T>&,  int, Waveform<T>&,  Waveform<T>&)  const;
+
+    void getMedian(const Waveform<T>&, T&)                                                                 const;
+    void getTruncatedMean(const Waveform<T>&, T&, int&, int&)                                              const;
+    void getTruncatedRMS(const Waveform<T>&, T, T&, T&, int&)                                              const;
+    void getTruncatedMeanRMS(const Waveform<T>&, T, T&, T&, T&, int&, int&)                                const;
+    void getPedestalCorrectedWaveform(const Waveform<T>&, Waveform<T>&, T, T&, T&, T&, int&, int&)         const;
    
 private:
 
@@ -64,8 +66,8 @@ private:
     
 //----------------------------------------------------------------------
 // Constructor.
-template <typename T>  inline WaveformTools<T>::WaveformTools() :
-    fMinRange(10)
+template <typename T>  inline WaveformTools<T>::WaveformTools(int minRange) :
+    fMinRange(minRange)
 {
     return;
 }
@@ -91,7 +93,7 @@ template <typename T>  inline void WaveformTools<T>::triangleSmooth(const std::v
     return;
 }
 
-template <typename T>  inline void WaveformTools<T>::medianSmooth(const std::vector<T>& inputVec, std::vector<T>& smoothVec, size_t nBins) const
+template <typename T>  inline void WaveformTools<T>::medianSmooth(const Waveform<T>& inputVec, Waveform<T>& smoothVec, size_t nBins) const
 {
     // For our purposes, nBins must be odd
     if (nBins % 2 == 0) nBins++;
@@ -118,7 +120,7 @@ template <typename T>  inline void WaveformTools<T>::medianSmooth(const std::vec
     while(std::distance(startItr,stopItr) > 0)
     {
         std::copy(startItr,startItr+nBins,medianVec.begin());
-        std::sort(medianVec.begin(),medianVec.end());
+        std::nth_element(medianVec.begin(),medianVec.begin() + medianBin, medianVec.end());
         
         T medianVal = medianVec[medianBin];
         
@@ -133,10 +135,46 @@ template <typename T>  inline void WaveformTools<T>::medianSmooth(const std::vec
     return;
 }
 
-template <typename T>  inline void WaveformTools<T>::getTruncatedMean(const std::vector<T>& waveformIn, T& mean, int& nTrunc, int& range) const
+template <typename T> inline void WaveformTools<T>::getMedian(const Waveform<T>& waveformIn, T& median) const
+{
+    median = T(0);
+
+    // Require at least 3 for median
+    if (waveformIn.size() > 2) 
+    {
+        Waveform<T> waveform = waveformIn;
+
+        size_t nVals = waveform.size();
+
+        // Differentiate even/odd case for size of vector
+        if (nVals % 2 == 0) 
+        {
+            size_t middleElem = nVals / 2;
+
+            std::nth_element(waveform.begin(), waveform.begin() + middleElem - 1, waveform.end());
+            std::nth_element(waveform.begin(), waveform.begin() + middleElem,     waveform.end());
+
+            median = (waveform[middleElem] + waveform[middleElem -1]) / 2;
+        } 
+        else 
+        {
+            std::nth_element(waveform.begin(), waveform.begin() + nVals/2, waveform.end());
+            median = waveform[nVals/2];
+        }
+    }
+    // Otherwise, if non empty, just average
+    else if (!waveformIn.empty())
+    {
+        median = std::accumulate(waveformIn.begin(),waveformIn.end(),T(0)) / T(waveformIn.size());
+    }
+
+    return;
+}
+
+template <typename T> inline void WaveformTools<T>::getTruncatedMean(const std::vector<T>& waveformIn, T& mean, int& nTrunc, int& range) const
 {
     // Try smoothing first to really find the baseline
-    std::vector<T> waveform;
+    Waveform<T> waveform;
 
     medianSmooth(waveformIn, waveform, 7);
     
@@ -158,7 +196,7 @@ template <typename T>  inline void WaveformTools<T>::getTruncatedMean(const std:
     
     for(const auto& val : waveform)
     {
-        int intVal = std::round(val) - minVal;
+        int intVal = std::round(val - minVal);
         
         frequencyVec[intVal]++;
         
@@ -179,46 +217,46 @@ template <typename T>  inline void WaveformTools<T>::getTruncatedMean(const std:
     
     for(int idx = startVal; idx <= stopVal; idx++)
     {
-        meanSum += (idx + minVal) * frequencyVec[idx];
+        meanSum += idx * frequencyVec[idx];
         nTrunc  += frequencyVec[idx];
     }
     
-    mean = T(meanSum) / T(nTrunc);
+    mean = T(meanSum) / T(nTrunc) + T(minVal);
     
     return;
 }
 
-template <typename T>  inline void WaveformTools<T>::getTruncatedRMS(const std::vector<T>& waveform, T nSig, T& rmsFull, T& rmsTrunc, int& nTrunc) const
+template <typename T>  inline void WaveformTools<T>::getTruncatedRMS(const std::vector<T>& waveformIn, T nSig, T& rmsFull, T& rmsTrunc, int& nTrunc) const
 {
     // This function assumes the input waveform has already been zero-suppressed
     // do rms calculation - the old fashioned way and over all adc values
     // recalculate the rms for truncation
     // Need a local copy of the input waveform (sadly... a copy operation)
-    std::vector<T> locWaveform = waveform;
+    Waveform<T> waveform = waveformIn;
 
     // Now get the 
-    rmsFull = std::inner_product(locWaveform.begin(), locWaveform.end(), locWaveform.begin(), 0.);
-    rmsFull = std::sqrt(std::max(T(0.),rmsFull / T(locWaveform.size())));
+    rmsFull = std::inner_product(waveform.begin(), waveform.end(), waveform.begin(), 0.);
+    rmsFull = std::sqrt(std::max(T(0.),rmsFull / T(waveform.size())));
     
     // Alternative to sorting is to remove elements outside of a cut range...
     T rmsCut = nSig * rmsFull;
     
-    typename std::vector<T>::iterator newEndItr = std::remove_if(locWaveform.begin(),locWaveform.end(),[rmsCut](const T& val){return std::abs(val) > rmsCut;});
+    typename std::vector<T>::iterator newEndItr = std::remove_if(waveform.begin(),waveform.end(),[rmsCut](const T& val){return std::abs(val) > rmsCut;});
 
-    rmsTrunc = std::inner_product(locWaveform.begin(), newEndItr, locWaveform.begin(), 0.);
-    nTrunc   = std::distance(locWaveform.begin(),newEndItr);
+    rmsTrunc = std::inner_product(waveform.begin(), newEndItr, waveform.begin(), 0.);
+    nTrunc   = std::distance(waveform.begin(),newEndItr);
     rmsTrunc = std::sqrt(std::max(T(0.),rmsTrunc / T(nTrunc)));
 
     return;
 }
 
-template <typename T>  inline void WaveformTools<T>::getTruncatedMeanRMS(const std::vector<T>& waveform, T nSig, T& mean, T& rmsFull, T& rmsTrunc, int& nTrunc, int& range) const
+template <typename T>  inline void WaveformTools<T>::getTruncatedMeanRMS(const std::vector<T>& waveformIn, T nSig, T& mean, T& rmsFull, T& rmsTrunc, int& nTrunc, int& range) const
 {
-    getTruncatedMean(waveform, mean, nTrunc, range);
+    getTruncatedMean(waveformIn, mean, nTrunc, range);
 
-    std::vector<T> zeroSuppressed(waveform.size());
+    std::vector<T> zeroSuppressed(waveformIn.size());
 
-    std::transform(waveform.begin(),waveform.end(),zeroSuppressed.begin(),std::bind(std::minus<T>(),std::placeholders::_1,mean));
+    std::transform(waveformIn.begin(),waveformIn.end(),zeroSuppressed.begin(),std::bind(std::minus<T>(),std::placeholders::_1,mean));
 
     getTruncatedRMS(zeroSuppressed, nSig, rmsFull, rmsTrunc, nTrunc);
     
@@ -226,18 +264,30 @@ template <typename T>  inline void WaveformTools<T>::getTruncatedMeanRMS(const s
 }
 
 
-template <typename T>  inline void WaveformTools<T>::getPedestalCorrectedWaveform(const std::vector<T>& inputWaveform, 
-                                                                                  std::vector<T>&       outputWaveform, 
-                                                                                  T                     nSig,
-                                                                                  T&                    mean,
-                                                                                  T&                    rmsFull, 
-                                                                                  T&                    rmsTrunc, 
-                                                                                  int&                  nTrunc,
-                                                                                  int&                  range) const
+template <typename T>  inline void WaveformTools<T>::getPedestalCorrectedWaveform(const Waveform<T>& inputWaveform, 
+                                                                                  Waveform<T>&       outputWaveform, 
+                                                                                  T                  nSig,
+                                                                                  T&                 mean,
+                                                                                  T&                 rmsFull, 
+                                                                                  T&                 rmsTrunc, 
+                                                                                  int&               nTrunc,
+                                                                                  int&               range) const
 {
     // First determine the mean/pedestal based on an average around the most probable value
-    getTruncatedMean(inputWaveform, mean, nTrunc, range);
+//    getTruncatedMean(inputWaveform, mean, nTrunc, range);
 
+    Waveform<T> waveform;
+
+    // Try this with the median instead...
+    medianSmooth(inputWaveform, waveform, 7);
+
+    std::pair<typename Waveform<T>::const_iterator,typename Waveform<T>::const_iterator> minMaxValItr = std::minmax_element(waveform.begin(),waveform.end());
+
+    range  = std::floor(*minMaxValItr.first) - std::ceil(*minMaxValItr.second) + 1;
+    nTrunc = inputWaveform.size();
+
+    getMedian(waveform, mean);
+ 
     // Do the pedestal correction
     std::transform(inputWaveform.begin(),inputWaveform.end(),outputWaveform.begin(),std::bind(std::minus<T>(),std::placeholders::_1,mean));
 
