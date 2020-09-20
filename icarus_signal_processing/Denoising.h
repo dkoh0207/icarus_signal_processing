@@ -38,33 +38,31 @@ class Denoising {
 public:
   
   /// Default constructor
-  Denoising(){}
+  Denoising() : fMPVec(4096) {}
 
   void getSelectVals(ArrayShort::const_iterator,
                      ArrayShort::const_iterator,
                      ArrayBool::iterator,
                      ArrayBool::iterator,
+                     VectorFloat::const_iterator,
                      const unsigned int,
+                     const unsigned int);
+
+  void getSelectVals(ArrayFloat::const_iterator,
+                     ArrayFloat::const_iterator,
+                     ArrayBool::iterator,
+                     ArrayBool::iterator,
+                     VectorFloat::const_iterator,
                      const unsigned int,
-                     const float);
+                     const unsigned int);
 
-  void getSelectVals(
-    ArrayFloat::const_iterator,
-    ArrayFloat::const_iterator,
-    ArrayBool::iterator,
-    ArrayBool::iterator,
-    const unsigned int,
-    const unsigned int,
-    const float);
-
-  void getSelectVals(
-    ArrayDouble::const_iterator,
-    ArrayDouble::const_iterator,
-    ArrayBool::iterator,
-    ArrayBool::iterator,
-    const unsigned int,
-    const unsigned int,
-    const float);
+  void getSelectVals(ArrayDouble::const_iterator,
+                     ArrayDouble::const_iterator,
+                     ArrayBool::iterator,
+                     ArrayBool::iterator,
+                     VectorFloat::const_iterator,
+                     const unsigned int,
+                     const unsigned int);
 
   void removeCoherentNoise1D(
     ArrayShort::iterator,
@@ -75,10 +73,10 @@ public:
     ArrayBool::iterator,
     ArrayShort::iterator,
     FilterFunctionVec::const_iterator,
+    VectorFloat::const_iterator,
     const unsigned int,
     const unsigned int,
-    const unsigned int,
-    const float 
+    const unsigned int 
   );
 
   void removeCoherentNoise1D(
@@ -90,10 +88,10 @@ public:
     ArrayBool::iterator,
     ArrayFloat::iterator,
     FilterFunctionVec::const_iterator,
+    VectorFloat::const_iterator,
     const unsigned int,
     const unsigned int,
-    const unsigned int,
-    const float 
+    const unsigned int 
   );
 
   void removeCoherentNoise1D(
@@ -105,10 +103,10 @@ public:
     ArrayBool::iterator,
     ArrayDouble::iterator,
     FilterFunctionVec::const_iterator,
+    VectorFloat::const_iterator,
     const unsigned int,
     const unsigned int,
-    const unsigned int,
-    const float 
+    const unsigned int
   );
 
   void removeCoherentNoise2D(
@@ -119,12 +117,12 @@ public:
     ArrayBool&,
     ArrayBool&,
     ArrayShort&,
+    VectorFloat&,
     const char, 
     const unsigned int,
     const unsigned int,
     const unsigned int,
-    const unsigned int,
-    const float);
+    const unsigned int);
 
   void removeCoherentNoise2D(
     ArrayFloat&,
@@ -134,12 +132,12 @@ public:
     ArrayBool&,
     ArrayBool&,
     ArrayFloat&,
+    VectorFloat&,
     const char, 
     const unsigned int,
     const unsigned int,
     const unsigned int,
-    const unsigned int,
-    const float);
+    const unsigned int);
 
   void removeCoherentNoise2D(
     ArrayDouble&, 
@@ -149,27 +147,29 @@ public:
     ArrayBool&,
     ArrayBool&,
     ArrayDouble&,
+    VectorFloat&,
     const char, 
     const unsigned int,
     const unsigned int,
     const unsigned int,
-    const unsigned int,
-    const float);
+    const unsigned int);
 
 /// Default destructor
 ~Denoising(){}
 
 private:
   template <typename T>
-  void getSelectVals(
-    typename std::vector<std::vector<T>>::const_iterator waveforms,
-    typename std::vector<std::vector<T>>::const_iterator morphedWaveforms,
-    ArrayBool::iterator                                  selectVals,
-    ArrayBool::iterator                                  roi,
-    const unsigned int                                   numChannels,
-    const unsigned int                                   window,
-    const float                                          thresholdFactor
+  void getSelectVals(typename std::vector<std::vector<T>>::const_iterator waveforms,
+                     typename std::vector<std::vector<T>>::const_iterator morphedWaveforms,
+                     ArrayBool::iterator                                  selectVals,
+                     ArrayBool::iterator                                  roi,
+                     VectorFloat::const_iterator                          thresholdVec,
+                     const unsigned int                                   numChannels,
+                     const unsigned int                                   window
   );
+
+  template <typename T> T getMedian(      typename std::vector<T>&, const unsigned int) const;
+  template <typename T> T getMostProbable(typename std::vector<T>&, const unsigned int);
 
   template <typename T>
   void removeCoherentNoise1D(
@@ -180,11 +180,11 @@ private:
     ArrayBool::iterator                                  selectVals,
     ArrayBool::iterator                                  roi,
     typename std::vector<std::vector<T> >::iterator      correctedMedians,
-    FilterFunctionVec::const_iterator                    filterFunctions, 
+    FilterFunctionVec::const_iterator                    filterFunctions,
+    VectorFloat::const_iterator                          thresholdFactorVec,
     const unsigned int                                   numChannels=64,
     const unsigned int                                   grouping=64,
-    const unsigned int                                   window=0,
-    const float                                          thresholdFactor=2.5);
+    const unsigned int                                   window=0);
 
   template <typename T>
   void removeCoherentNoise2D(
@@ -195,12 +195,16 @@ private:
     ArrayBool& selectVals,
     ArrayBool& roi,
     std::vector<std::vector<T> >& correctedMedians,
+    VectorFloat& thresholdVec,
     const char filterName='g',
     const unsigned int grouping=64, 
     const unsigned int structuringElementx=5,
     const unsigned int structuringElementy=20,
-    const unsigned int window=0,
-    const float thresholdFactor=2.5);
+    const unsigned int window=0);
+
+    // The code for the most probable calculation will need a std vector
+    // We don't wnat to allocated/deallocate each call so have master copy here
+    std::vector<int> fMPVec;
   
 };
 }
