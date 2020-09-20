@@ -1,14 +1,14 @@
 /**
  * \file MiscUtils.h
  *
- * \ingroup icarus_signal_processing
+ * \ingroup sigproc_tools
  * 
  * \brief Class def header for a class MiscUtils
  *
  * @author koh0207
  */
 
-/** \addtogroup icarus_signal_processing
+/** \addtogroup sigproc_tools
 
     @{*/
 #ifndef __SIGPROC_TOOLS_MISCUTILS_H__
@@ -21,7 +21,7 @@
 #include <cmath>
 #include <functional>
 
-namespace icarus_signal_processing {
+namespace sigproc_tools {
 
   /**
      \class MiscUtils
@@ -38,9 +38,12 @@ namespace icarus_signal_processing {
       float computeMedian(const std::vector<float>& vec);
       double computeMedian(const std::vector<double>& vec);
 
-      float compute_noise_power(
+      float estimateNoiseVariance(
         const std::vector<std::vector<float>>& waveLessCoherent,
         const std::vector<std::vector<bool>>& selectVals);
+
+      float estimateMAD(
+        const std::vector<float>& wf);
 
       
       /// Default destructor

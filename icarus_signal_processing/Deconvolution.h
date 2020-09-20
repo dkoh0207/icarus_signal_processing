@@ -69,6 +69,27 @@ namespace sigproc_tools {
         const float
       );
 
+
+      void AdaptiveWiener1D(
+        std::vector<std::vector<float>>&,
+        const std::vector<std::vector<float>>&,
+        const std::vector<float>&,
+        const std::vector<std::vector<bool>>&
+      );
+
+      void AdaptiveWiener1D(
+        std::vector<std::vector<double>>&,
+        const std::vector<std::vector<double>>&,
+        const std::vector<double>&,
+        const std::vector<std::vector<bool>>&
+      );
+
+      void FourierShrinkage1D(
+        std::vector<std::vector<float>>& outputWaveform,
+        const std::vector<std::vector<float>>& inputWaveform,
+        const std::vector<float>& responseFunction,
+        const float regParam);
+
       
       /// Default destructor
       ~Deconvolution(){}
@@ -88,6 +109,14 @@ namespace sigproc_tools {
         const std::vector<std::vector<T>>& inputWaveform,
         const std::vector<T>& responseFunction,
         const float noiseVar
+      );
+
+      template <typename T>
+      void AdaptiveWiener1D(
+        std::vector<std::vector<T>>& outputWaveform,
+        const std::vector<std::vector<T>>& inputWaveform,
+        const std::vector<T>& responseFunction,
+        const std::vector<std::vector<bool>>& selectVals
       );
       
     };

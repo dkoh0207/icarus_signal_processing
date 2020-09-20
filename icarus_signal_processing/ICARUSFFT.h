@@ -63,8 +63,13 @@ template <class T> inline ICARUSFFT<T>::ICARUSFFT(int numTimeSamples)
     fFrequencyVec.resize(numTimeSamples, std::complex<T>(0.,0.)); // One extra bin to reflect
 
     // Now get the plans
+#ifdef ICARUSFFT_FLOAT
+    fForwardPlan = fftw_plan_dft_r2c_1f(numTimeSamples, fTimeVec.data(), reinterpret_cast<fftw_complex*>(fFrequencyVec.data()), FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
+    fInversePlan = fftw_plan_dft_c2r_1f(numTimeSamples, reinterpret_cast<fftw_complex*>(fFrequencyVec.data()), fTimeVec.data(), FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
+#else
     fForwardPlan = fftw_plan_dft_r2c_1d(numTimeSamples, fTimeVec.data(), reinterpret_cast<fftw_complex*>(fFrequencyVec.data()), FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
     fInversePlan = fftw_plan_dft_c2r_1d(numTimeSamples, reinterpret_cast<fftw_complex*>(fFrequencyVec.data()), fTimeVec.data(), FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
+#endif
 
     return;
 }
@@ -141,21 +146,10 @@ template <class T> inline void ICARUSFFT<T>::convolute(TimeVec& timeVec, const F
     // First do the actual convolution
     convolute(timeVec, kernel);
 
-    // Now rotate the output vector
-    std::vector<T> temp;
-
-    if (timeOffset <=0)
-    {
-        temp.assign(timeVec.begin(),timeVec.begin()-timeOffset);
-        timeVec.erase(timeVec.begin(),timeVec.begin()-timeOffset);
-        timeVec.insert(timeVec.end(),temp.begin(),temp.end());
-    }
-    else
-    {
-        temp.assign(timeVec.end()-timeOffset,timeVec.end());
-        timeVec.erase(timeVec.end()-timeOffset,timeVec.end());
-        timeVec.insert(timeVec.begin(),temp.begin(),temp.end());
-    }
+    // Left Rotation
+    if (timeOffset < 0)      std::rotate(timeVec.begin(), timeVec.begin() - timeOffset, timeVec.end());
+    // Right rotation
+    else if (timeOffset > 0) std::rotate(timeVec.rbegin(), timeVec.rbegin() + timeOffset, timeVec.rend());
 
     return;
 }
@@ -165,21 +159,9 @@ template <class T> inline void ICARUSFFT<T>::deconvolute(TimeVec& timeVec, const
     // First do the operation
     convolute(timeVec, kernel);
 
-    // Now rotate for the time offset
-    std::vector<T> temp;
-
-    if (timeOffset <=0)
-    {
-        temp.assign(timeVec.end()+timeOffset,timeVec.end());
-        timeVec.erase(timeVec.end()+timeOffset,timeVec.end());
-        timeVec.insert(timeVec.begin(),temp.begin(),temp.end());
-    }
-    else
-    {
-        temp.assign(timeVec.begin(),timeVec.begin()+timeOffset);
-        timeVec.erase(timeVec.begin(),timeVec.begin()+timeOffset);
-        timeVec.insert(timeVec.end(),temp.begin(),temp.end());
-    }
+    // Right rotation
+    if (timeOffset < 0)      std::rotate(timeVec.rbegin(), timeVec.rbegin() - timeOffset, timeVec.rend());
+    else if (timeOffset > 0) std::rotate(timeVec.begin(), timeVec.begin() + timeOffset, timeVec.end());
 
     return;
 }
