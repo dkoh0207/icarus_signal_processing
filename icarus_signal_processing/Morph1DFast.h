@@ -1,18 +1,18 @@
 /**
  * \file Morph1DFast.h
  *
- * \ingroup sigproc_tools
+ * \ingroup icarus_signal_processing
  * 
  * \brief Class def header for a class Morph1DFast
  *
  * @author koh0207
  */
 
-/** \addtogroup sigproc_tools
+/** \addtogroup icarus_signal_processing
 
     @{*/
-#ifndef __SIGPROC_TOOLS_MORPH1DFAST_H__
-#define __SIGPROC_TOOLS_MORPH1DFAST_H__
+#ifndef __icarus_signal_processing_MORPH1DFAST_H__
+#define __icarus_signal_processing_MORPH1DFAST_H__
 
 #include <iostream>
 #include <vector>
@@ -23,7 +23,7 @@
 #include <functional>
 #include <limits>
 
-namespace sigproc_tools {
+namespace icarus_signal_processing {
 
   /**
      \class Morph1DFast

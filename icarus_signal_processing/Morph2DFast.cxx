@@ -1,10 +1,10 @@
-#ifndef __SIGPROC_TOOLS_MORPH2DFAST_CXX__
-#define __SIGPROC_TOOLS_MORPH2DFAST_CXX__
+#ifndef __icarus_signal_processing_MORPH2DFAST_CXX__
+#define __icarus_signal_processing_MORPH2DFAST_CXX__
 
 #include "Morph2DFast.h"
 
 
-void sigproc_tools::Morph2DFast::getDilation(
+void icarus_signal_processing::Morph2DFast::getDilation(
   const std::vector<std::vector<short> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -15,7 +15,7 @@ void sigproc_tools::Morph2DFast::getDilation(
   return;
 }
 
-void sigproc_tools::Morph2DFast::getDilation(
+void icarus_signal_processing::Morph2DFast::getDilation(
   const std::vector<std::vector<float> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -26,7 +26,7 @@ void sigproc_tools::Morph2DFast::getDilation(
   return;
 }
 
-void sigproc_tools::Morph2DFast::getDilation(
+void icarus_signal_processing::Morph2DFast::getDilation(
   const std::vector<std::vector<double> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -38,7 +38,7 @@ void sigproc_tools::Morph2DFast::getDilation(
 }
 
 template <typename T>
-void sigproc_tools::Morph2DFast::getDilation(
+void icarus_signal_processing::Morph2DFast::getDilation(
   const std::vector<std::vector<T> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -52,7 +52,7 @@ void sigproc_tools::Morph2DFast::getDilation(
     dilation2D[i].resize(nTicks);
   }
 
-  sigproc_tools::Morph1DFast fast1D;
+  icarus_signal_processing::Morph1DFast fast1D;
 
   for (size_t i=0; i<numChannels; ++i) {
     fast1D.getDilation(waveform2D[i], structuringElementy, dilation2D[i]);
@@ -72,7 +72,7 @@ void sigproc_tools::Morph2DFast::getDilation(
 }
 
 
-void sigproc_tools::Morph2DFast::getErosion(
+void icarus_signal_processing::Morph2DFast::getErosion(
   const std::vector<std::vector<short> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -83,7 +83,7 @@ void sigproc_tools::Morph2DFast::getErosion(
   return;
 }
 
-void sigproc_tools::Morph2DFast::getErosion(
+void icarus_signal_processing::Morph2DFast::getErosion(
   const std::vector<std::vector<float> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -94,7 +94,7 @@ void sigproc_tools::Morph2DFast::getErosion(
   return;
 }
 
-void sigproc_tools::Morph2DFast::getErosion(
+void icarus_signal_processing::Morph2DFast::getErosion(
   const std::vector<std::vector<double> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -106,7 +106,7 @@ void sigproc_tools::Morph2DFast::getErosion(
 }
 
 template <typename T>
-void sigproc_tools::Morph2DFast::getErosion(
+void icarus_signal_processing::Morph2DFast::getErosion(
   const std::vector<std::vector<T> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -120,7 +120,7 @@ void sigproc_tools::Morph2DFast::getErosion(
     erosion2D[i].resize(nTicks);
   }
 
-  sigproc_tools::Morph1DFast fast1D;
+  icarus_signal_processing::Morph1DFast fast1D;
 
   for (size_t i=0; i<numChannels; ++i) {
     fast1D.getErosion(waveform2D[i], structuringElementy, erosion2D[i]);
@@ -140,7 +140,7 @@ void sigproc_tools::Morph2DFast::getErosion(
 }
 
 
-void sigproc_tools::Morph2DFast::getGradient(
+void icarus_signal_processing::Morph2DFast::getGradient(
   const std::vector<std::vector<short> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -151,7 +151,7 @@ void sigproc_tools::Morph2DFast::getGradient(
   return;
 }
 
-void sigproc_tools::Morph2DFast::getGradient(
+void icarus_signal_processing::Morph2DFast::getGradient(
   const std::vector<std::vector<float> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -162,7 +162,7 @@ void sigproc_tools::Morph2DFast::getGradient(
   return;
 }
 
-void sigproc_tools::Morph2DFast::getGradient(
+void icarus_signal_processing::Morph2DFast::getGradient(
   const std::vector<std::vector<double> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -174,7 +174,7 @@ void sigproc_tools::Morph2DFast::getGradient(
 }
 
 template <typename T>
-void sigproc_tools::Morph2DFast::getGradient(
+void icarus_signal_processing::Morph2DFast::getGradient(
   const std::vector<std::vector<T> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -203,7 +203,7 @@ void sigproc_tools::Morph2DFast::getGradient(
 }
 
 
-void sigproc_tools::Morph2DFast::getClosing(
+void icarus_signal_processing::Morph2DFast::getClosing(
   const std::vector<std::vector<short> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -214,7 +214,7 @@ void sigproc_tools::Morph2DFast::getClosing(
   return;
 }
 
-void sigproc_tools::Morph2DFast::getClosing(
+void icarus_signal_processing::Morph2DFast::getClosing(
   const std::vector<std::vector<float> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -225,7 +225,7 @@ void sigproc_tools::Morph2DFast::getClosing(
   return;
 }
 
-void sigproc_tools::Morph2DFast::getClosing(
+void icarus_signal_processing::Morph2DFast::getClosing(
   const std::vector<std::vector<double> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -237,7 +237,7 @@ void sigproc_tools::Morph2DFast::getClosing(
 }
 
 template <typename T>
-void sigproc_tools::Morph2DFast::getClosing(
+void icarus_signal_processing::Morph2DFast::getClosing(
   const std::vector<std::vector<T> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -251,7 +251,7 @@ void sigproc_tools::Morph2DFast::getClosing(
 
 
 
-void sigproc_tools::Morph2DFast::getOpening(
+void icarus_signal_processing::Morph2DFast::getOpening(
   const std::vector<std::vector<short> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -262,7 +262,7 @@ void sigproc_tools::Morph2DFast::getOpening(
   return;
 }
 
-void sigproc_tools::Morph2DFast::getOpening(
+void icarus_signal_processing::Morph2DFast::getOpening(
   const std::vector<std::vector<float> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -273,7 +273,7 @@ void sigproc_tools::Morph2DFast::getOpening(
   return;
 }
 
-void sigproc_tools::Morph2DFast::getOpening(
+void icarus_signal_processing::Morph2DFast::getOpening(
   const std::vector<std::vector<double> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,
@@ -285,7 +285,7 @@ void sigproc_tools::Morph2DFast::getOpening(
 }
 
 template <typename T>
-void sigproc_tools::Morph2DFast::getOpening(
+void icarus_signal_processing::Morph2DFast::getOpening(
   const std::vector<std::vector<T> >& waveform2D,
   const unsigned int structuringElementx,
   const unsigned int structuringElementy,

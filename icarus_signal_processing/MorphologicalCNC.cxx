@@ -1,9 +1,9 @@
-#ifndef __SIGPROC_TOOLS_MORPHOLOGICALCNC_CXX__
-#define __SIGPROC_TOOLS_MORPHOLOGICALCNC_CXX__
+#ifndef __icarus_signal_processing_MORPHOLOGICALCNC_CXX__
+#define __icarus_signal_processing_MORPHOLOGICALCNC_CXX__
 
 #include "MorphologicalCNC.h"
 
-void sigproc_tools::MorphologicalCNC::getSelectVals(
+void icarus_signal_processing::MorphologicalCNC::getSelectVals(
   const std::vector<std::vector<short>>& morphedWaveforms,
   std::vector<std::vector<bool>>& selectVals,
   std::vector<std::vector<bool>>& roi,
@@ -14,7 +14,7 @@ void sigproc_tools::MorphologicalCNC::getSelectVals(
     roi, window, thresholdFactor);
 }
 
-void sigproc_tools::MorphologicalCNC::getSelectVals(
+void icarus_signal_processing::MorphologicalCNC::getSelectVals(
   const std::vector<std::vector<float>>& morphedWaveforms,
   std::vector<std::vector<bool>>& selectVals,
   std::vector<std::vector<bool>>& roi,
@@ -25,7 +25,7 @@ void sigproc_tools::MorphologicalCNC::getSelectVals(
     roi, window, thresholdFactor);
 }
 
-void sigproc_tools::MorphologicalCNC::getSelectVals(
+void icarus_signal_processing::MorphologicalCNC::getSelectVals(
   const std::vector<std::vector<double>>& morphedWaveforms,
   std::vector<std::vector<bool>>& selectVals,
   std::vector<std::vector<bool>>& roi,
@@ -37,7 +37,7 @@ void sigproc_tools::MorphologicalCNC::getSelectVals(
 }
 
 template <typename T>
-void sigproc_tools::MorphologicalCNC::getSelectVals(
+void icarus_signal_processing::MorphologicalCNC::getSelectVals(
   const std::vector<std::vector<T>>& morphedWaveforms,
   std::vector<std::vector<bool>>& selectVals,
   std::vector<std::vector<bool>>& roi,
@@ -46,7 +46,7 @@ void sigproc_tools::MorphologicalCNC::getSelectVals(
 {
   auto numChannels = morphedWaveforms.size();
   auto nTicks = morphedWaveforms.at(0).size();
-  sigproc_tools::MiscUtils utils;
+  icarus_signal_processing::MiscUtils utils;
 
   for (size_t i=0; i<numChannels; ++i) {
     float median = 0.0;
@@ -81,7 +81,7 @@ void sigproc_tools::MorphologicalCNC::getSelectVals(
 }
 
 
-void sigproc_tools::MorphologicalCNC::denoiseCoherent1D(
+void icarus_signal_processing::MorphologicalCNC::denoiseCoherent1D(
   std::vector<std::vector<short> >& waveLessCoherent,
   const std::vector<std::vector<short> >& fullEvent,
   std::vector<std::vector<bool> >& selectVals,
@@ -96,7 +96,7 @@ void sigproc_tools::MorphologicalCNC::denoiseCoherent1D(
     filterName, grouping, structuringElement, window, thresholdFactor);
 }
 
-void sigproc_tools::MorphologicalCNC::denoiseCoherent1D(
+void icarus_signal_processing::MorphologicalCNC::denoiseCoherent1D(
   std::vector<std::vector<float> >& waveLessCoherent,
   const std::vector<std::vector<float> >& fullEvent,
   std::vector<std::vector<bool> >& selectVals,
@@ -111,7 +111,7 @@ void sigproc_tools::MorphologicalCNC::denoiseCoherent1D(
     filterName, grouping, structuringElement, window, thresholdFactor);
 }
 
-void sigproc_tools::MorphologicalCNC::denoiseCoherent1D(
+void icarus_signal_processing::MorphologicalCNC::denoiseCoherent1D(
   std::vector<std::vector<double> >& waveLessCoherent,
   const std::vector<std::vector<double> >& fullEvent,
   std::vector<std::vector<bool> >& selectVals,
@@ -128,7 +128,7 @@ void sigproc_tools::MorphologicalCNC::denoiseCoherent1D(
 
 
 template <typename T>
-void sigproc_tools::MorphologicalCNC::denoiseCoherent1D(
+void icarus_signal_processing::MorphologicalCNC::denoiseCoherent1D(
   std::vector<std::vector<T> >& waveLessCoherent,
   const std::vector<std::vector<T> >& fullEvent,
   std::vector<std::vector<bool> >& selectVals,
@@ -143,8 +143,8 @@ void sigproc_tools::MorphologicalCNC::denoiseCoherent1D(
   size_t nTicks = fullEvent.at(0).size();
   size_t nGroups = numChannels / grouping;
 
-  sigproc_tools::Morph1DFast filter;
-  sigproc_tools::MiscUtils utils;
+  icarus_signal_processing::Morph1DFast filter;
+  icarus_signal_processing::MiscUtils utils;
   std::vector<std::vector<T>> morphedWaveforms;
   morphedWaveforms.resize(numChannels);
   for (auto& v : morphedWaveforms) {
@@ -209,7 +209,7 @@ void sigproc_tools::MorphologicalCNC::denoiseCoherent1D(
 }
 
 
-void sigproc_tools::MorphologicalCNC::denoiseCoherent2D(
+void icarus_signal_processing::MorphologicalCNC::denoiseCoherent2D(
   std::vector<std::vector<short>>& waveLessCoherent,
   const std::vector<std::vector<short>>& fullEvent,
   std::vector<std::vector<bool>>& selectVals,
@@ -228,7 +228,7 @@ void sigproc_tools::MorphologicalCNC::denoiseCoherent2D(
   return;
 }
 
-void sigproc_tools::MorphologicalCNC::denoiseCoherent2D(
+void icarus_signal_processing::MorphologicalCNC::denoiseCoherent2D(
   std::vector<std::vector<float>>& waveLessCoherent,
   const std::vector<std::vector<float>>& fullEvent,
   std::vector<std::vector<bool>>& selectVals,
@@ -247,7 +247,7 @@ void sigproc_tools::MorphologicalCNC::denoiseCoherent2D(
   return;
 }
 
-void sigproc_tools::MorphologicalCNC::denoiseCoherent2D(
+void icarus_signal_processing::MorphologicalCNC::denoiseCoherent2D(
   std::vector<std::vector<double>>& waveLessCoherent,
   const std::vector<std::vector<double>>& fullEvent,
   std::vector<std::vector<bool>>& selectVals,
@@ -267,7 +267,7 @@ void sigproc_tools::MorphologicalCNC::denoiseCoherent2D(
 }
 
 template <typename T>
-void sigproc_tools::MorphologicalCNC::denoiseCoherent2D(
+void icarus_signal_processing::MorphologicalCNC::denoiseCoherent2D(
   std::vector<std::vector<T>>& waveLessCoherent,
   const std::vector<std::vector<T>>& fullEvent,
   std::vector<std::vector<bool>>& selectVals,
@@ -283,8 +283,8 @@ void sigproc_tools::MorphologicalCNC::denoiseCoherent2D(
   auto nTicks = fullEvent.at(0).size();
   auto nGroups = numChannels / grouping;
 
-  sigproc_tools::Morph2DFast filter;
-  sigproc_tools::MiscUtils utils;
+  icarus_signal_processing::Morph2DFast filter;
+  icarus_signal_processing::MiscUtils utils;
   std::vector<std::vector<T>> morphedWaveforms;
   morphedWaveforms.resize(numChannels);
   for (auto& v : morphedWaveforms) {

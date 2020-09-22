@@ -1,5 +1,5 @@
-#ifndef __SIGPROC_TOOLS_MORPH2D_CXX__
-#define __SIGPROC_TOOLS_MORPH2D_CXX__
+#ifndef __icarus_signal_processing_MORPH2D_CXX__
+#define __icarus_signal_processing_MORPH2D_CXX__
 
 #include "Morph2D.h"
 

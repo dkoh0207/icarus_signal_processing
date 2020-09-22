@@ -1,17 +1,17 @@
 /**
  * \file Deconvolution.h
  *
- * \ingroup sigproc_tools
+ * \ingroup icarus_signal_processing
  * 
  * \brief Class def header for a class Deconvolution
  *
  * @author koh0207
  */
 
-/** \addtogroup sigproc_tools
+/** \addtogroup icarus_signal_processing
 
     @{*/
-#ifndef __SIGPROC_TOOLS_DECONVOLUTION_H__
+#ifndef __icarus_signal_processing_DECONVOLUTION_H__
 
 #include <vector>
 #include <iostream>
@@ -26,9 +26,9 @@
 #include <unsupported/Eigen/FFT>
 
 
-#define __SIGPROC_TOOLS_DECONVOLUTION_H__
+#define __icarus_signal_processing_DECONVOLUTION_H__
 
-namespace sigproc_tools {
+namespace icarus_signal_processing {
 
   /**
      \class Deconvolution

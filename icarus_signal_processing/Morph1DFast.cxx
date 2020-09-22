@@ -1,10 +1,10 @@
-#ifndef __SIGPROC_TOOLS_MORPH1DFAST_CXX__
-#define __SIGPROC_TOOLS_MORPH1DFAST_CXX__
+#ifndef __icarus_signal_processing_MORPH1DFAST_CXX__
+#define __icarus_signal_processing_MORPH1DFAST_CXX__
 
 #include "Morph1DFast.h"
 
 
-void sigproc_tools::Morph1DFast::getDilation(
+void icarus_signal_processing::Morph1DFast::getDilation(
   const Waveform<short>& waveform,
   const unsigned int structuringElement,
   Waveform<short>& dilationVec) const
@@ -13,7 +13,7 @@ void sigproc_tools::Morph1DFast::getDilation(
   return;
 }
 
-void sigproc_tools::Morph1DFast::getDilation(
+void icarus_signal_processing::Morph1DFast::getDilation(
   const Waveform<float>& waveform,
   const unsigned int structuringElement,
   Waveform<float>& dilationVec) const
@@ -22,7 +22,7 @@ void sigproc_tools::Morph1DFast::getDilation(
   return;
 }
 
-void sigproc_tools::Morph1DFast::getDilation(
+void icarus_signal_processing::Morph1DFast::getDilation(
   const Waveform<double>& waveform,
   const unsigned int structuringElement,
   Waveform<double>& dilationVec) const
@@ -32,7 +32,7 @@ void sigproc_tools::Morph1DFast::getDilation(
 }
 
 template <typename T>
-void sigproc_tools::Morph1DFast::getDilation(
+void icarus_signal_processing::Morph1DFast::getDilation(
   const Waveform<T>& inputWaveform,
   const unsigned int structuringElement,
   Waveform<T>& dilationVec) const
@@ -96,7 +96,7 @@ void sigproc_tools::Morph1DFast::getDilation(
 }
 
 
-void sigproc_tools::Morph1DFast::getErosion(
+void icarus_signal_processing::Morph1DFast::getErosion(
   const Waveform<short>& waveform,
   const unsigned int structuringElement,
   Waveform<short>& erosionVec) const
@@ -105,7 +105,7 @@ void sigproc_tools::Morph1DFast::getErosion(
   return;
 }
 
-void sigproc_tools::Morph1DFast::getErosion(
+void icarus_signal_processing::Morph1DFast::getErosion(
   const Waveform<float>& waveform,
   const unsigned int structuringElement,
   Waveform<float>& erosionVec) const
@@ -114,7 +114,7 @@ void sigproc_tools::Morph1DFast::getErosion(
   return;
 }
 
-void sigproc_tools::Morph1DFast::getErosion(
+void icarus_signal_processing::Morph1DFast::getErosion(
   const Waveform<double>& waveform,
   const unsigned int structuringElement,
   Waveform<double>& erosionVec) const
@@ -124,7 +124,7 @@ void sigproc_tools::Morph1DFast::getErosion(
 }
 
 template <typename T>
-void sigproc_tools::Morph1DFast::getErosion(
+void icarus_signal_processing::Morph1DFast::getErosion(
   const Waveform<T>& inputWaveform,
   const unsigned int structuringElement,
   Waveform<T>& erosionVec) const
@@ -188,7 +188,7 @@ void sigproc_tools::Morph1DFast::getErosion(
 }
 
 
-void sigproc_tools::Morph1DFast::getGradient(
+void icarus_signal_processing::Morph1DFast::getGradient(
   const Waveform<short>& waveform,
   const unsigned int structuringElement,
   Waveform<short>& gradientVec) const
@@ -197,7 +197,7 @@ void sigproc_tools::Morph1DFast::getGradient(
   return;
 }
 
-void sigproc_tools::Morph1DFast::getGradient(
+void icarus_signal_processing::Morph1DFast::getGradient(
   const Waveform<float>& waveform,
   const unsigned int structuringElement,
   Waveform<float>& gradientVec) const
@@ -206,7 +206,7 @@ void sigproc_tools::Morph1DFast::getGradient(
   return;
 }
 
-void sigproc_tools::Morph1DFast::getGradient(
+void icarus_signal_processing::Morph1DFast::getGradient(
   const Waveform<double>& waveform,
   const unsigned int structuringElement,
   Waveform<double>& gradientVec) const
@@ -216,7 +216,7 @@ void sigproc_tools::Morph1DFast::getGradient(
 }
 
 template <typename T>
-void sigproc_tools::Morph1DFast::getGradient(
+void icarus_signal_processing::Morph1DFast::getGradient(
   const Waveform<T>& inputWaveform,
   const unsigned int structuringElement,
   Waveform<T>& gradientVec) const
@@ -235,7 +235,7 @@ void sigproc_tools::Morph1DFast::getGradient(
 }
 
 
-void sigproc_tools::Morph1DFast::getOpening(
+void icarus_signal_processing::Morph1DFast::getOpening(
   const Waveform<short>& waveform,
   const unsigned int structuringElement,
   Waveform<short>& openingVec) const
@@ -244,7 +244,7 @@ void sigproc_tools::Morph1DFast::getOpening(
   return;
 }
 
-void sigproc_tools::Morph1DFast::getOpening(
+void icarus_signal_processing::Morph1DFast::getOpening(
   const Waveform<float>& waveform,
   const unsigned int structuringElement,
   Waveform<float>& openingVec) const
@@ -253,7 +253,7 @@ void sigproc_tools::Morph1DFast::getOpening(
   return;
 }
 
-void sigproc_tools::Morph1DFast::getOpening(
+void icarus_signal_processing::Morph1DFast::getOpening(
   const Waveform<double>& waveform,
   const unsigned int structuringElement,
   Waveform<double>& openingVec) const
@@ -263,7 +263,7 @@ void sigproc_tools::Morph1DFast::getOpening(
 }
 
 template <typename T>
-void sigproc_tools::Morph1DFast::getOpening(
+void icarus_signal_processing::Morph1DFast::getOpening(
   const Waveform<T>& inputWaveform,
   const unsigned int structuringElement,
   Waveform<T>& openingVec) const
@@ -275,7 +275,7 @@ void sigproc_tools::Morph1DFast::getOpening(
 }
 
 
-void sigproc_tools::Morph1DFast::getClosing(
+void icarus_signal_processing::Morph1DFast::getClosing(
   const Waveform<short>& waveform,
   const unsigned int structuringElement,
   Waveform<short>& closingVec) const
@@ -284,7 +284,7 @@ void sigproc_tools::Morph1DFast::getClosing(
   return;
 }
 
-void sigproc_tools::Morph1DFast::getClosing(
+void icarus_signal_processing::Morph1DFast::getClosing(
   const Waveform<float>& waveform,
   const unsigned int structuringElement,
   Waveform<float>& closingVec) const
@@ -293,7 +293,7 @@ void sigproc_tools::Morph1DFast::getClosing(
   return;
 }
 
-void sigproc_tools::Morph1DFast::getClosing(
+void icarus_signal_processing::Morph1DFast::getClosing(
   const Waveform<double>& waveform,
   const unsigned int structuringElement,
   Waveform<double>& closingVec) const
@@ -303,7 +303,7 @@ void sigproc_tools::Morph1DFast::getClosing(
 }
 
 template <typename T>
-void sigproc_tools::Morph1DFast::getClosing(
+void icarus_signal_processing::Morph1DFast::getClosing(
   const Waveform<T>& inputWaveform,
   const unsigned int structuringElement,
   Waveform<T>& closingVec) const

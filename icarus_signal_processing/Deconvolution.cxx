@@ -1,11 +1,11 @@
-#ifndef __SIGPROC_TOOLS_DECONVOLUTION_CXX__
-#define __SIGPROC_TOOLS_DECONVOLUTION_CXX__
+#ifndef __icarus_signal_processing_DECONVOLUTION_CXX__
+#define __icarus_signal_processing_DECONVOLUTION_CXX__
 
 #include "Deconvolution.h"
 
 // 1D Inverse Filtering. Probably we should not use it...
 
-void sigproc_tools::Deconvolution::Inverse1D(
+void icarus_signal_processing::Deconvolution::Inverse1D(
   std::vector<std::vector<float>>& outputWaveform,
   const std::vector<std::vector<float>>& inputWaveform,
   const std::vector<float>& responseFunction)
@@ -13,7 +13,7 @@ void sigproc_tools::Deconvolution::Inverse1D(
   Inverse1D<float>(outputWaveform, inputWaveform, responseFunction);
 }
 
-void sigproc_tools::Deconvolution::Inverse1D(
+void icarus_signal_processing::Deconvolution::Inverse1D(
   std::vector<std::vector<double>>& outputWaveform,
   const std::vector<std::vector<double>>& inputWaveform,
   const std::vector<double>& responseFunction)
@@ -22,7 +22,7 @@ void sigproc_tools::Deconvolution::Inverse1D(
 }
 
 template <typename T>
-void sigproc_tools::Deconvolution::Inverse1D(
+void icarus_signal_processing::Deconvolution::Inverse1D(
   std::vector<std::vector<T>>& outputWaveform,
   const std::vector<std::vector<T>>& inputWaveform,
   const std::vector<T>& responseFunction)
@@ -52,7 +52,7 @@ void sigproc_tools::Deconvolution::Inverse1D(
 
 // 1D Wiener Deconvolution.
 
-void sigproc_tools::Deconvolution::Wiener1D(
+void icarus_signal_processing::Deconvolution::Wiener1D(
   std::vector<std::vector<float>>& outputWaveform,
   const std::vector<std::vector<float>>& inputWaveform,
   const std::vector<float>& responseFunction,
@@ -61,7 +61,7 @@ void sigproc_tools::Deconvolution::Wiener1D(
   Wiener1D<float>(outputWaveform, inputWaveform, responseFunction, noiseVar);
 }
 
-void sigproc_tools::Deconvolution::Wiener1D(
+void icarus_signal_processing::Deconvolution::Wiener1D(
   std::vector<std::vector<double>>& outputWaveform,
   const std::vector<std::vector<double>>& inputWaveform,
   const std::vector<double>& responseFunction,
@@ -71,7 +71,7 @@ void sigproc_tools::Deconvolution::Wiener1D(
 }
 
 template <typename T>
-void sigproc_tools::Deconvolution::Wiener1D(
+void icarus_signal_processing::Deconvolution::Wiener1D(
   std::vector<std::vector<T>>& outputWaveform,
   const std::vector<std::vector<T>>& inputWaveform,
   const std::vector<T>& responseFunction,
@@ -108,7 +108,7 @@ void sigproc_tools::Deconvolution::Wiener1D(
 
 // 1D Adaptive Wiener Deconvolution
 
-void sigproc_tools::Deconvolution::AdaptiveWiener1D(
+void icarus_signal_processing::Deconvolution::AdaptiveWiener1D(
   std::vector<std::vector<float>>& outputWaveform,
   const std::vector<std::vector<float>>& inputWaveform,
   const std::vector<float>& responseFunction,
@@ -117,7 +117,7 @@ void sigproc_tools::Deconvolution::AdaptiveWiener1D(
   AdaptiveWiener1D<float>(outputWaveform, inputWaveform, responseFunction, selectVals);
 }
 
-void sigproc_tools::Deconvolution::AdaptiveWiener1D(
+void icarus_signal_processing::Deconvolution::AdaptiveWiener1D(
   std::vector<std::vector<double>>& outputWaveform,
   const std::vector<std::vector<double>>& inputWaveform,
   const std::vector<double>& responseFunction,
@@ -127,7 +127,7 @@ void sigproc_tools::Deconvolution::AdaptiveWiener1D(
 }
 
 template <typename T>
-void sigproc_tools::Deconvolution::AdaptiveWiener1D(
+void icarus_signal_processing::Deconvolution::AdaptiveWiener1D(
   std::vector<std::vector<T>>& outputWaveform,
   const std::vector<std::vector<T>>& inputWaveform,
   const std::vector<T>& responseFunction,
@@ -136,7 +136,7 @@ void sigproc_tools::Deconvolution::AdaptiveWiener1D(
   size_t numChannels = inputWaveform.size();
   size_t nTicks = inputWaveform.at(0).size();
 
-  sigproc_tools::MiscUtils utils;
+  icarus_signal_processing::MiscUtils utils;
 
   outputWaveform.resize(numChannels);
   for (size_t i=0; i<numChannels; ++i) {
@@ -187,7 +187,7 @@ void sigproc_tools::Deconvolution::AdaptiveWiener1D(
 
 // Fourier Shrinkage
 
-void sigproc_tools::Deconvolution::FourierShrinkage1D(
+void icarus_signal_processing::Deconvolution::FourierShrinkage1D(
   std::vector<std::vector<float>>& outputWaveform,
   const std::vector<std::vector<float>>& inputWaveform,
   const std::vector<float>& responseFunction,

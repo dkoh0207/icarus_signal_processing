@@ -1,18 +1,18 @@
 /**
  * \file MorphologicalCNC.h
  *
- * \ingroup sigproc_tools
+ * \ingroup icarus_signal_processing
  *
  * \brief Class def header for a class MorphologicalCNC
  *
  * @author koh0207
  */
 
-/** \addtogroup sigproc_tools
+/** \addtogroup icarus_signal_processing
 
     @{*/
-#ifndef __SIGPROC_TOOLS_MORPHOLOGICALCNC_H__
-#define __SIGPROC_TOOLS_MORPHOLOGICALCNC_H__
+#ifndef __icarus_signal_processing_MORPHOLOGICALCNC_H__
+#define __icarus_signal_processing_MORPHOLOGICALCNC_H__
 
 #include <vector>
 #include <iostream>
@@ -26,7 +26,7 @@
 #include "Morph2DFast.h"
 #include "MiscUtils.h"
 
-namespace sigproc_tools {
+namespace icarus_signal_processing {
 
   /**
      \class MorphologicalCNC

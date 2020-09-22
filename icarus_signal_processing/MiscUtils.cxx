@@ -1,25 +1,25 @@
-#ifndef __SIGPROC_TOOLS_MISCUTILS_CXX__
-#define __SIGPROC_TOOLS_MISCUTILS_CXX__
+#ifndef __icarus_signal_processing_MISCUTILS_CXX__
+#define __icarus_signal_processing_MISCUTILS_CXX__
 
 #include "MiscUtils.h"
 
-short sigproc_tools::MiscUtils::computeMedian(const std::vector<short>& vec) {
+short icarus_signal_processing::MiscUtils::computeMedian(const std::vector<short>& vec) {
   short median = computeMedian<short>(vec);
   return median;
 }
 
-float sigproc_tools::MiscUtils::computeMedian(const std::vector<float>& vec) {
+float icarus_signal_processing::MiscUtils::computeMedian(const std::vector<float>& vec) {
   float median = computeMedian<float>(vec);
   return median;
 }
 
-double sigproc_tools::MiscUtils::computeMedian(const std::vector<double>& vec) {
+double icarus_signal_processing::MiscUtils::computeMedian(const std::vector<double>& vec) {
   double median = computeMedian<double>(vec);
   return median;
 }
 
 template <typename T>
-T sigproc_tools::MiscUtils::computeMedian(const std::vector<T>& vec)
+T icarus_signal_processing::MiscUtils::computeMedian(const std::vector<T>& vec)
 {
   T median;
   std::vector<T> localVec = vec;
@@ -39,7 +39,7 @@ T sigproc_tools::MiscUtils::computeMedian(const std::vector<T>& vec)
   return median;
 }
 
-float sigproc_tools::MiscUtils::estimateNoiseVariance(
+float icarus_signal_processing::MiscUtils::estimateNoiseVariance(
   const std::vector<std::vector<float>>& waveLessCoherent,
   const std::vector<std::vector<bool>>& selectVals)
 {
@@ -64,7 +64,7 @@ float sigproc_tools::MiscUtils::estimateNoiseVariance(
   return var;
 }
 
-float sigproc_tools::MiscUtils::estimateMAD(
+float icarus_signal_processing::MiscUtils::estimateMAD(
   const std::vector<float>& wf)
 {
   size_t numChannels = wf.size();

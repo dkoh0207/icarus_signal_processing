@@ -11,8 +11,8 @@
 /** \addtogroup icarus_signal_processing
 
     @{*/
-#ifndef __SIGPROC_TOOLS_MORPH2D_H__
-#define __SIGPROC_TOOLS_MORPH2D_H__icarus_signal_processing
+#ifndef __icarus_signal_processing_MORPH2D_H__
+#define __icarus_signal_processing_MORPH2D_H__icarus_signal_processing
 
 #include <iostream>
 #include <vector>
