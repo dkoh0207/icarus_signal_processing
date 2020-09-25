@@ -43,13 +43,30 @@ public:
     void getFFTPower(const TimeVec&, TimeVec&)   const;
     
 private:
+#ifdef ICARUSFFT_FLOAT
+    #define ForwardPlan fftwf_plan_dft_r2c_1d
+    #define InversePlan fftwf_plan_dft_c2r_1d
+    #define DestroyPlan fftwf_destroy_plan
+    #define FFTWPlan    fftwf_plan
+    #define fftw_r2c    fftwf_execute_dft_r2c
+    #define fftw_c2r    fftwf_execute_dft_c2r
+    #define fftwComplex fftwf_complex
+#else
+    #define ForwardPlan fftw_plan_dft_r2c_1d
+    #define InversePlan fftw_plan_dft_c2r_1d
+    #define DestroyPlan fftw_destroy_plan
+    #define FFTWPlan    fftw_plan
+    #define fftw_r2c    fftw_execute_dft_r2c
+    #define fftw_c2r    fftw_execute_dft_c2r
+    #define fftwComplex fftw_complex
+#endif
     // The above are essentially the same operation with different 
     // kernels... so do the common part here
     void convolute(TimeVec&, const FrequencyVec&) const;
 
     // The plans for running the FFT 
-    fftw_plan    fForwardPlan;
-    fftw_plan    fInversePlan;
+    FFTWPlan    fForwardPlan;
+    FFTWPlan    fInversePlan;
 
     // Local arrays 
     TimeVec      fTimeVec;
@@ -63,21 +80,16 @@ template <class T> inline ICARUSFFT<T>::ICARUSFFT(int numTimeSamples)
     fFrequencyVec.resize(numTimeSamples, std::complex<T>(0.,0.)); // One extra bin to reflect
 
     // Now get the plans
-#ifdef ICARUSFFT_FLOAT
-    fForwardPlan = fftw_plan_dft_r2c_1f(numTimeSamples, fTimeVec.data(), reinterpret_cast<fftw_complex*>(fFrequencyVec.data()), FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
-    fInversePlan = fftw_plan_dft_c2r_1f(numTimeSamples, reinterpret_cast<fftw_complex*>(fFrequencyVec.data()), fTimeVec.data(), FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
-#else
-    fForwardPlan = fftw_plan_dft_r2c_1d(numTimeSamples, fTimeVec.data(), reinterpret_cast<fftw_complex*>(fFrequencyVec.data()), FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
-    fInversePlan = fftw_plan_dft_c2r_1d(numTimeSamples, reinterpret_cast<fftw_complex*>(fFrequencyVec.data()), fTimeVec.data(), FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
-#endif
+    fForwardPlan = ForwardPlan(numTimeSamples, fTimeVec.data(), reinterpret_cast<fftwComplex*>(fFrequencyVec.data()), FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
+    fInversePlan = InversePlan(numTimeSamples, reinterpret_cast<fftwComplex*>(fFrequencyVec.data()), fTimeVec.data(), FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
 
     return;
 }
 
 template <class T> inline ICARUSFFT<T>::~ICARUSFFT()
 {
-    fftw_destroy_plan(fForwardPlan);
-    fftw_destroy_plan(fInversePlan);
+    DestroyPlan(fForwardPlan);
+    DestroyPlan(fInversePlan);
 
     fTimeVec.clear();
     fFrequencyVec.clear();
@@ -92,7 +104,7 @@ template <class T> inline void ICARUSFFT<T>::forwardFFT(TimeVec& timeVec, Freque
 
     frequencyVec.resize(timeVec.size());
 
-    fftw_execute_dft_r2c(fForwardPlan, timeVec.data(), reinterpret_cast<fftw_complex*>(frequencyVec.data()));
+    fftw_r2c(fForwardPlan, timeVec.data(), reinterpret_cast<fftwComplex*>(frequencyVec.data()));
 
     // Reflect the output frequency vector
     size_t vecSize    = timeVec.size();
@@ -111,7 +123,7 @@ template <class T> inline void ICARUSFFT<T>::inverseFFT(FrequencyVec& frequencyV
 
     timeVec.resize(frequencyVec.size());
 
-    fftw_execute_dft_c2r(fInversePlan, reinterpret_cast<fftw_complex*>(frequencyVec.data()), timeVec.data());
+    fftw_c2r(fInversePlan, reinterpret_cast<fftwComplex*>(frequencyVec.data()), timeVec.data());
 
     // Now normalize
     T normFactor = 1. / T(timeVec.size());
