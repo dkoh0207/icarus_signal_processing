@@ -6,54 +6,13 @@
 #include <chrono>
 
 
-void icarus_signal_processing::Denoising::getSelectVals(
-  ArrayShort::const_iterator  waveforms,
-  ArrayShort::const_iterator  morphedWaveforms,
-  ArrayBool::iterator         selectVals,
-  ArrayBool::iterator         roi,
-  VectorFloat::const_iterator thresholdVec,
-  const unsigned int          numChannels,
-  const unsigned int          window)
-{
-  getSelectVals<short>(waveforms, morphedWaveforms, selectVals,
-    roi, thresholdVec, numChannels, window);
-}
-
-void icarus_signal_processing::Denoising::getSelectVals(
-  ArrayFloat::const_iterator waveforms,
-  ArrayFloat::const_iterator morphedWaveforms,
-  ArrayBool::iterator         selectVals,
-  ArrayBool::iterator         roi,
-  VectorFloat::const_iterator thresholdVec,
-  const unsigned int          numChannels,
-  const unsigned int          window)
-{
-  getSelectVals<float>(waveforms, morphedWaveforms, selectVals,
-    roi, thresholdVec, numChannels, window);
-}
-
-void icarus_signal_processing::Denoising::getSelectVals(
-  ArrayDouble::const_iterator  waveforms,
-  ArrayDouble::const_iterator  morphedWaveforms,
-  ArrayBool::iterator          selectVals,
-  ArrayBool::iterator          roi,
-  VectorFloat::const_iterator  thresholdVec,
-  const unsigned int           numChannels,
-  const unsigned int           window)
-{
-  getSelectVals<double>(waveforms, morphedWaveforms, selectVals,
-    roi, thresholdVec, numChannels, window);
-}
-
-template <typename T>
-void icarus_signal_processing::Denoising::getSelectVals(
-  typename std::vector<std::vector<T>>::const_iterator waveformsItr,
-  typename std::vector<std::vector<T>>::const_iterator morphedWaveformsItr,
-  ArrayBool::iterator                                  selectValsItr,
-  ArrayBool::iterator                                  roiItr,
-  VectorFloat::const_iterator                          thresholdItr,
-  const unsigned int                                   numChannels,
-  const unsigned int                                   window)
+void icarus_signal_processing::Denoising::getSelectVals(ArrayFloat::const_iterator  waveformsItr,
+                                                        ArrayFloat::const_iterator  morphedWaveformsItr,
+                                                        ArrayBool::iterator         selectValsItr,
+                                                        ArrayBool::iterator         roiItr,
+                                                        VectorFloat::const_iterator thresholdItr,
+                                                        const unsigned int          numChannels,
+                                                        const unsigned int          window)
 {
     auto nTicks = waveformsItr[0].size();
 
@@ -62,11 +21,11 @@ void icarus_signal_processing::Denoising::getSelectVals(
 
     for (size_t i=0; i<numChannels; ++i) 
     {
-        std::vector<T> localVec = morphedWaveformsItr[i];
+        std::vector<float> localVec = morphedWaveformsItr[i];
 
-        T median = getMedian(localVec, localVec.size());
+        float median = getMedian(localVec, localVec.size());
 
-        std::vector<T> baseVec;
+        std::vector<float> baseVec;
         baseVec.resize(localVec.size());
 
         for (size_t j=0; j<baseVec.size(); ++j) baseVec[j] = morphedWaveformsItr[i][j] - median;
@@ -98,83 +57,18 @@ void icarus_signal_processing::Denoising::getSelectVals(
     return;
 }
 
-
-void icarus_signal_processing::Denoising::removeCoherentNoise1D(
-  ArrayShort::iterator              waveLessCoherent,
-  ArrayShort::const_iterator        filteredWaveforms,
-  ArrayShort::iterator              morphedWaveforms,
-  ArrayShort::iterator              intrinsicRMS,
-  ArrayBool::iterator               selectVals,
-  ArrayBool::iterator               roi,
-  ArrayShort::iterator              correctedMedians,
-  FilterFunctionVec::const_iterator filterFunctions,
-  VectorFloat::const_iterator       thresholdVec,
-  const unsigned int                numChannels,
-  const unsigned int                grouping,
-  const unsigned int                window)
-{
-  removeCoherentNoise1D<short>(
-    waveLessCoherent, filteredWaveforms, morphedWaveforms, 
-    intrinsicRMS, selectVals, roi, correctedMedians, filterFunctions, thresholdVec,
-    numChannels, grouping, window);
-  return;
-}
-
-void icarus_signal_processing::Denoising::removeCoherentNoise1D(
-  ArrayFloat::iterator              waveLessCoherent,
-  ArrayFloat::const_iterator        filteredWaveforms,
-  ArrayFloat::iterator              morphedWaveforms,
-  ArrayFloat::iterator              intrinsicRMS,
-  ArrayBool::iterator               selectVals,
-  ArrayBool::iterator               roi,
-  ArrayFloat::iterator              correctedMedians,
-  FilterFunctionVec::const_iterator filterFunctions,
-  VectorFloat::const_iterator       thresholdVec,
-  const unsigned int                numChannels,
-  const unsigned int                grouping,
-  const unsigned int                window)
-{
-  removeCoherentNoise1D<float>(
-    waveLessCoherent, filteredWaveforms, morphedWaveforms, 
-    intrinsicRMS, selectVals, roi, correctedMedians, filterFunctions, thresholdVec,
-    numChannels, grouping, window);
-  return;
-}
-
-void icarus_signal_processing::Denoising::removeCoherentNoise1D(
-  ArrayDouble::iterator             waveLessCoherent,
-  ArrayDouble::const_iterator       filteredWaveforms,
-  ArrayDouble::iterator             morphedWaveforms,
-  ArrayDouble::iterator             intrinsicRMS,
-  ArrayBool::iterator               selectVals,
-  ArrayBool::iterator               roi,
-  ArrayDouble::iterator             correctedMedians,
-  FilterFunctionVec::const_iterator filterFunctions,
-  VectorFloat::const_iterator       thresholdVec,
-  const unsigned int                numChannels,
-  const unsigned int                grouping,
-  const unsigned int                window)
-{
-  removeCoherentNoise1D<double>(
-    waveLessCoherent, filteredWaveforms, morphedWaveforms, 
-    intrinsicRMS, selectVals, roi, correctedMedians, filterFunctions, thresholdVec, 
-    numChannels, grouping, window);
-  return;
-}
-
-template <typename T>
-void icarus_signal_processing::Denoising::removeCoherentNoise1D(typename std::vector<std::vector<T>>::iterator       waveLessCoherentItr,
-                                                                typename std::vector<std::vector<T>>::const_iterator filteredWaveformsItr,
-                                                                typename std::vector<std::vector<T>>::iterator       morphedWaveformsItr,
-                                                                typename std::vector<std::vector<T>>::iterator       intrinsicRMSItr,
-                                                                ArrayBool::iterator                                  selectValsItr,
-                                                                ArrayBool::iterator                                  roiItr,
-                                                                typename std::vector<std::vector<T>>::iterator       correctedMediansItr,
-                                                                FilterFunctionVec::const_iterator                    filterFunctions,
-                                                                VectorFloat::const_iterator                          thresholdItr,
-                                                                const unsigned int                                   numChannels,
-                                                                const unsigned int                                   grouping,
-                                                                const unsigned int                                   window)
+void icarus_signal_processing::Denoising::removeCoherentNoise1D(ArrayFloat::iterator              waveLessCoherentItr,
+                                                                ArrayFloat::const_iterator        filteredWaveformsItr,
+                                                                ArrayFloat::iterator              morphedWaveformsItr,
+                                                                ArrayFloat::iterator              intrinsicRMSItr,
+                                                                ArrayBool::iterator               selectValsItr,
+                                                                ArrayBool::iterator               roiItr,
+                                                                ArrayFloat::iterator              correctedMediansItr,
+                                                                FilterFunctionVec::const_iterator filterFunctionsItr,
+                                                                VectorFloat::const_iterator       thresholdItr,
+                                                                const unsigned int                numChannels,
+                                                                const unsigned int                grouping,
+                                                                const unsigned int                window)
 {
     auto nTicks  = filteredWaveformsItr->size();
     auto nGroups = numChannels / grouping;
@@ -185,7 +79,7 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(typename std::ve
 
     for(size_t funcIdx = 0; funcIdx < numChannels; funcIdx++)
     {
-        const icarus_signal_processing::IMorphologicalFunctions1D* func = (*(filterFunctions + funcIdx)).get();
+        const icarus_signal_processing::IMorphologicalFunctions1D* func = (*(filterFunctionsItr + funcIdx)).get();
 
         if (!func) 
         {
@@ -204,7 +98,7 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(typename std::ve
     std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point noiseStart = selStop;
 
-    std::vector<T> v(grouping);
+    std::vector<float> v(grouping);
 
     for (size_t i=0; i<nTicks; ++i) 
     {
@@ -220,7 +114,7 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(typename std::ve
                 if (!selectValsItr[c][i]) v[idxV++] = filteredWaveformsItr[c][i];
             }
 
-            T median = getMedian(v,idxV);
+            float median = getMedian(v,idxV);
 
             correctedMediansItr[j][i] = median;
             for (auto k=group_start; k<group_end; ++k) waveLessCoherentItr[k][i] = filteredWaveformsItr[k][i] - median;
@@ -229,15 +123,15 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(typename std::ve
 
     std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
 
-    T rms = (T) 0;
+    float rms(0.);
     for (size_t i=0; i<nGroups; ++i) 
     {
         for (size_t j=0; j<nTicks; ++j) 
         {
             size_t idxV(0);
             for (size_t k=i*grouping; k<(i+1)*grouping; ++k) v[idxV++] = waveLessCoherentItr[k][j];
-            rms = std::sqrt(std::inner_product(v.begin(), v.begin()+idxV, v.begin(), 0.) / T(v.size()));
-            intrinsicRMSItr[i][j] = (T) rms;
+            rms = std::sqrt(std::inner_product(v.begin(), v.begin()+idxV, v.begin(), 0.) / float(v.size()));
+            intrinsicRMSItr[i][j] = rms;
         }
     }
 
@@ -254,9 +148,9 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(typename std::ve
     return;
 }
 
-template <typename T> T icarus_signal_processing::Denoising::getMedian(typename std::vector<T>& vals, const unsigned int nVals) const
+float icarus_signal_processing::Denoising::getMedian(std::vector<float>& vals, const unsigned int nVals) const
 {
-    T median = T(0);
+    float median(0.);
 
     if (nVals > 2) 
     {
@@ -281,14 +175,14 @@ template <typename T> T icarus_signal_processing::Denoising::getMedian(typename 
     return median;
 }
 
-template <typename T> T icarus_signal_processing::Denoising::getMostProbable(typename std::vector<T>& vals, const unsigned int nVals)
+float icarus_signal_processing::Denoising::getMostProbable(std::vector<float>& vals, const unsigned int nVals)
 {
-    T mostProbable = T(0);
+    float mostProbable(0.);
 
     // Do a simple average if only a few bins
     if (nVals < 5)
     {
-        mostProbable = std::accumulate(vals.begin(),vals.begin()+nVals,0.) / T(nVals);
+        mostProbable = std::accumulate(vals.begin(),vals.begin()+nVals,0.) / float(nVals);
     }
     // Otherwise try to form value around MP
     else
@@ -296,14 +190,14 @@ template <typename T> T icarus_signal_processing::Denoising::getMostProbable(typ
         auto minVItr = std::min_element(vals.begin(),vals.begin()+nVals);
         auto maxVItr = std::max_element(vals.begin(),vals.begin()+nVals);
 
-        T minValue = *minVItr;
-        T maxValue = *maxVItr;
+        float minValue = *minVItr;
+        float maxValue = *maxVItr;
 
         size_t numBins = size_t(maxValue - minValue + 1);
 
         std::fill(fMPVec.begin(),fMPVec.begin() + numBins,0);
   
-        for(typename std::vector<T>::iterator vItr = vals.begin(); vItr != vals.begin() + nVals; vItr++)
+        for(typename std::vector<float>::iterator vItr = vals.begin(); vItr != vals.begin() + nVals; vItr++)
         {
             int binIdx = int(std::round((*vItr - minValue)));
   
@@ -313,7 +207,7 @@ template <typename T> T icarus_signal_processing::Denoising::getMostProbable(typ
         std::vector<int>::iterator maxItr = std::max_element(fMPVec.begin(),fMPVec.begin()+numBins);
   
         int count = *maxItr;
-        T   mpVal = T(count) * T(std::distance(fMPVec.begin(),maxItr));
+        float   mpVal = float(count) * float(std::distance(fMPVec.begin(),maxItr));
 
         auto cntItr = maxItr;
 
@@ -322,7 +216,7 @@ template <typename T> T icarus_signal_processing::Denoising::getMostProbable(typ
             if (*(cntItr - 1) < 0.5 * *maxItr) break;
 
             count += *(cntItr - 1);
-            mpVal += T(*(cntItr - 1)) * T(std::distance(fMPVec.begin(),cntItr - 1));
+            mpVal += float(*(cntItr - 1)) * float(std::distance(fMPVec.begin(),cntItr - 1));
 
             cntItr--;
         }
@@ -334,40 +228,17 @@ template <typename T> T icarus_signal_processing::Denoising::getMostProbable(typ
             if (*(cntItr + 1) < 0.5 * *maxItr) break;
 
             count += *(cntItr + 1);
-            mpVal += T(*(cntItr + 1)) * T(std::distance(fMPVec.begin(),cntItr + 1));
+            mpVal += float(*(cntItr + 1)) * float(std::distance(fMPVec.begin(),cntItr + 1));
 
             cntItr++;
         }
   
-        mostProbable = mpVal / T(count) + minValue;
+        mostProbable = mpVal / float(count) + minValue;
     }
 
     return mostProbable;
 }
 
-
-void icarus_signal_processing::Denoising::removeCoherentNoise2D(
-  ArrayShort& waveLessCoherent,
-  const ArrayShort& filteredWaveforms,
-  ArrayShort& morphedWaveforms,
-  ArrayShort& intrinsicRMS,
-  ArrayBool& selectVals,
-  ArrayBool& roi,
-  ArrayShort& correctedMedians,
-  VectorFloat& thresholdVec,
-  const char filterName,
-  const unsigned int grouping,
-  const unsigned int structuringElementx,
-  const unsigned int structuringElementy,
-  const unsigned int window)
-{
-  removeCoherentNoise2D<short>(
-    waveLessCoherent, filteredWaveforms, morphedWaveforms, 
-    intrinsicRMS, selectVals, roi, correctedMedians,
-    thresholdVec, filterName, grouping, structuringElementx, structuringElementy, 
-    window);
-  return;
-}
 
 void icarus_signal_processing::Denoising::removeCoherentNoise2D(
   ArrayFloat& waveLessCoherent,
@@ -377,53 +248,6 @@ void icarus_signal_processing::Denoising::removeCoherentNoise2D(
   ArrayBool& selectVals,
   ArrayBool& roi,
   ArrayFloat& correctedMedians,
-  VectorFloat& thresholdVec,
-  const char filterName,
-  const unsigned int grouping,
-  const unsigned int structuringElementx,
-  const unsigned int structuringElementy,
-  const unsigned int window)
-{
-  removeCoherentNoise2D<float>(
-    waveLessCoherent, filteredWaveforms, morphedWaveforms, 
-    intrinsicRMS, selectVals, roi, correctedMedians,
-    thresholdVec, filterName, grouping, structuringElementx, structuringElementy, 
-    window);
-  return;
-}
-
-void icarus_signal_processing::Denoising::removeCoherentNoise2D(
-  ArrayDouble& waveLessCoherent,
-  const ArrayDouble& filteredWaveforms,
-  ArrayDouble& morphedWaveforms,
-  ArrayDouble& intrinsicRMS,
-  ArrayBool& selectVals,
-  ArrayBool& roi,
-  ArrayDouble& correctedMedians,
-  VectorFloat& thresholdVec,
-  const char filterName,
-  const unsigned int grouping,
-  const unsigned int structuringElementx,
-  const unsigned int structuringElementy,
-  const unsigned int window)
-{
-  removeCoherentNoise2D<double>(
-    waveLessCoherent, filteredWaveforms, morphedWaveforms, 
-    intrinsicRMS, selectVals, roi, correctedMedians,
-    thresholdVec, filterName, grouping, structuringElementx, structuringElementy, 
-    window);
-  return;
-}
-
-template <typename T>
-void icarus_signal_processing::Denoising::removeCoherentNoise2D(
-  std::vector<std::vector<T>>& waveLessCoherent,
-  const std::vector<std::vector<T>>& filteredWaveforms,
-  std::vector<std::vector<T>>& morphedWaveforms,
-  std::vector<std::vector<T>>& intrinsicRMS,
-  ArrayBool& selectVals,
-  ArrayBool& roi,
-  std::vector<std::vector<T>>& correctedMedians,
   VectorFloat& thresholdVec,
   const char filterName,
   const unsigned int grouping,
@@ -464,10 +288,10 @@ void icarus_signal_processing::Denoising::removeCoherentNoise2D(
 
   icarus_signal_processing::Morph2D denoiser;
 
-  std::vector<std::vector<T>> dilation;
-  std::vector<std::vector<T>> erosion;
-  std::vector<std::vector<T>> average;
-  std::vector<std::vector<T>> gradient;
+  std::vector<std::vector<float>> dilation;
+  std::vector<std::vector<float>> erosion;
+  std::vector<std::vector<float>> average;
+  std::vector<std::vector<float>> gradient;
 
   denoiser.getFilter2D(filteredWaveforms, structuringElementx,
     structuringElementy, dilation, erosion, average, gradient);
@@ -505,13 +329,13 @@ void icarus_signal_processing::Denoising::removeCoherentNoise2D(
       size_t group_start = j * grouping;
       size_t group_end = (j+1) * grouping;
       // Compute median.
-      std::vector<T> v;
+      std::vector<float> v;
       for (size_t c=group_start; c<group_end; ++c) {
         if (!selectVals[c][i]) {
           v.push_back(filteredWaveforms[c][i]);
         }
       }
-      T median = (T) 0.0;
+      float median(0.);
       if (v.size() > 0) {
         if (v.size() % 2 == 0) {
           const auto m1 = v.begin() + v.size() / 2 - 1;
@@ -541,14 +365,14 @@ void icarus_signal_processing::Denoising::removeCoherentNoise2D(
   float rms = 0.0;
   for (size_t i=0; i<nGroups; ++i) {
     for (size_t j=0; j<nTicks; ++j) {
-      std::vector<T> v;
+      std::vector<float> v;
       for (size_t k=i*grouping; k<(i+1)*grouping; ++k) {
         v.push_back(waveLessCoherent[k][j]);
       }
       rms = std::sqrt(
         std::inner_product(
-          v.begin(), v.end(), v.begin(), 0.) / T(v.size()));
-      intrinsicRMS[i][j] = (T) rms;
+          v.begin(), v.end(), v.begin(), 0.) / float(v.size()));
+      intrinsicRMS[i][j] = rms;
     }
   }
   return;
