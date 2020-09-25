@@ -1,6 +1,8 @@
 #ifndef __SIGPROC_TOOLS_FFTFILTERFUNCTIONS_CXX__
 #define __SIGPROC_TOOLS_FFTFILTERFUNCTIONS_CXX__
 
+#define ICARUSFFT_FLOAT
+
 #include "FFTFilterFunctions.h"
 #include "icarus_signal_processing/ICARUSFFT.h"
 
@@ -17,7 +19,7 @@ namespace icarus_signal_processing
 
 HighPassFFTFilter::HighPassFFTFilter(const std::vector<double>& sigmaVec, const std::vector<double>& offsetVec)
 {
-    fFFT = std::make_unique<icarus_signal_processing::ICARUSFFT<double>>();
+    fFFT = std::make_unique<icarus_signal_processing::ICARUSFFT<float>>();
 
     fHighPassFilterKernels.resize(3);
 
@@ -27,14 +29,14 @@ HighPassFFTFilter::HighPassFFTFilter(const std::vector<double>& sigmaVec, const 
 
         highPassFilterKernel.resize(4096);
 
-        std::fill(highPassFilterKernel.begin(),highPassFilterKernel.end(),std::complex<double>(1.,0.));
+        std::fill(highPassFilterKernel.begin(),highPassFilterKernel.end(),std::complex<float>(1.,0.));
 
         for(int binIdx = 0; binIdx < int(offsetVec[planeIdx]); binIdx++)
         {
             float expVal = -pow((float(binIdx) - offsetVec[planeIdx])/sigmaVec[planeIdx],2.);
             float binVal = exp(expVal);
 
-            highPassFilterKernel[binIdx] = std::complex<double>(binVal,0.);
+            highPassFilterKernel[binIdx] = std::complex<float>(binVal,0.);
 
             std::cout << "--Bin: " << binIdx << ", expVal: " << expVal << ", binVal: " << binVal << std::endl;
         }
@@ -50,7 +52,14 @@ HighPassFFTFilter::~HighPassFFTFilter()
 
 void HighPassFFTFilter::operator()(Waveform<float>& waveformVec, int plane) const
 {
-    Waveform<double> locWaveform(waveformVec.size());
+    highPassFilter(waveformVec, plane);
+
+    return;
+}
+
+void HighPassFFTFilter::operator()(Waveform<double>& waveformVec, int plane) const
+{
+    Waveform<float> locWaveform(waveformVec.size());
 
     std::copy(waveformVec.begin(), waveformVec.end(), locWaveform.begin());
 
@@ -61,12 +70,7 @@ void HighPassFFTFilter::operator()(Waveform<float>& waveformVec, int plane) cons
     return;
 }
 
-void HighPassFFTFilter::operator()(Waveform<double>& waveformVec, int plane) const
-{
-    highPassFilter(waveformVec, plane);
-}
-
-void icarus_signal_processing::HighPassFFTFilter::highPassFilter(Waveform<double>& inputWaveform, int plane) const
+void icarus_signal_processing::HighPassFFTFilter::highPassFilter(Waveform<float>& inputWaveform, int plane) const
 {
     fFFT->convolute(inputWaveform, fHighPassFilterKernels[plane], 0);
 
@@ -75,7 +79,14 @@ void icarus_signal_processing::HighPassFFTFilter::highPassFilter(Waveform<double
 
 void LowPassFFTFilter::operator()(Waveform<float>& waveformVec, int plane) const 
 {
-    Waveform<double> locWaveform(waveformVec.size());
+    lowPassFilter(waveformVec, plane);
+
+    return;
+}
+
+void LowPassFFTFilter::operator()(Waveform<double>& waveformVec, int plane) const
+{
+    Waveform<float> locWaveform(waveformVec.size());
 
     std::copy(waveformVec.begin(), waveformVec.end(), locWaveform.begin());
 
@@ -86,13 +97,8 @@ void LowPassFFTFilter::operator()(Waveform<float>& waveformVec, int plane) const
     return;
 }
 
-void LowPassFFTFilter::operator()(Waveform<double>& waveformVec, int plane) const
-{
-    lowPassFilter(waveformVec, plane);
-}
 
-
-void icarus_signal_processing::LowPassFFTFilter::lowPassFilter(Waveform<double>& inputWaveform, int plane) const
+void icarus_signal_processing::LowPassFFTFilter::lowPassFilter(Waveform<float>& inputWaveform, int plane) const
 {
     return;
 }
@@ -100,7 +106,7 @@ void icarus_signal_processing::LowPassFFTFilter::lowPassFilter(Waveform<double>&
 WindowFFTFilter::WindowFFTFilter(const std::vector<std::pair<double,double>>& sigmaPairVec, 
                                  const std::vector<std::pair<double,double>>& offsetPairVec)
 {
-    fFFT = std::make_unique<icarus_signal_processing::ICARUSFFT<double>>();
+    fFFT = std::make_unique<icarus_signal_processing::ICARUSFFT<float>>();
 
     fWindowFilterKernels.resize(3);
 
@@ -108,7 +114,7 @@ WindowFFTFilter::WindowFFTFilter(const std::vector<std::pair<double,double>>& si
     {
         KernelVec& windowFilterKernel = fWindowFilterKernels[planeIdx];
 
-        windowFilterKernel.resize(4096,std::complex<double>(0.,0.));
+        windowFilterKernel.resize(4096,std::complex<float>(0.,0.));
 
         int lowOffset = std::min(int(offsetPairVec[planeIdx].first),  4096);
         int hiOffset  = std::min(int(offsetPairVec[planeIdx].second), 4096);
@@ -151,7 +157,14 @@ WindowFFTFilter::~WindowFFTFilter()
 
 void WindowFFTFilter::operator()(Waveform<float>& waveformVec, int plane) const
 {
-    Waveform<double> locWaveform(waveformVec.size());
+    windowFilter(waveformVec, plane);
+
+    return;
+}
+
+void WindowFFTFilter::operator()(Waveform<double>& waveformVec, int plane) const
+{
+    Waveform<float> locWaveform(waveformVec.size());
 
     std::copy(waveformVec.begin(), waveformVec.end(), locWaveform.begin());
 
@@ -162,12 +175,7 @@ void WindowFFTFilter::operator()(Waveform<float>& waveformVec, int plane) const
     return;
 }
 
-void WindowFFTFilter::operator()(Waveform<double>& waveformVec, int plane) const
-{
-    windowFilter(waveformVec, plane);
-}
-
-void WindowFFTFilter::windowFilter(Waveform<double>& inputWaveform, int plane) const
+void WindowFFTFilter::windowFilter(Waveform<float>& inputWaveform, int plane) const
 {
     fFFT->convolute(inputWaveform, fWindowFilterKernels[plane], 0);
 

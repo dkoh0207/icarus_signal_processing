@@ -77,14 +77,14 @@ public:
     void operator()(Waveform<double>&, int)  const override;
 
 private:
-    void highPassFilter(Waveform<double>&, int) const;
+    void highPassFilter(Waveform<float>&, int) const;
 
-    using KernelVec = std::vector<std::complex<double>>;
+    using KernelVec = std::vector<std::complex<float>>;
 
     std::vector<KernelVec> fHighPassFilterKernels;
 
     // Keep track of the FFT 
-    std::unique_ptr<icarus_signal_processing::ICARUSFFT<double>> fFFT; ///< Object to handle thread safe FFT
+    std::unique_ptr<icarus_signal_processing::ICARUSFFT<float>> fFFT; ///< Object to handle thread safe FFT
 };
 
 /**
@@ -114,11 +114,11 @@ public:
     void operator()(Waveform<double>&, int)  const override;
 
 private:
-    void lowPassFilter(Waveform<double>&, int) const;
+    void lowPassFilter(Waveform<float>&, int) const;
 
     unsigned int fStructuringElement;
 
-    using KernelVec = std::vector<Waveform<double>>;
+    using KernelVec = std::vector<Waveform<float>>;
 
     KernelVec fFilterKernelVec;
 };
@@ -150,14 +150,14 @@ public:
     void operator()(Waveform<double>&, int)  const override;
 
 private:
-    void windowFilter(Waveform<double>&, int) const;
+    void windowFilter(Waveform<float>&, int) const;
 
-    using KernelVec = std::vector<std::complex<double>>;
+    using KernelVec = std::vector<std::complex<float>>;
 
     std::vector<KernelVec> fWindowFilterKernels;
 
     // Keep track of the FFT 
-    std::unique_ptr<icarus_signal_processing::ICARUSFFT<double>> fFFT; ///< Object to handle thread safe FFT
+    std::unique_ptr<icarus_signal_processing::ICARUSFFT<float>> fFFT; ///< Object to handle thread safe FFT
 };
 
 }
