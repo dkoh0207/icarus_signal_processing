@@ -240,142 +240,84 @@ float icarus_signal_processing::Denoising::getMostProbable(std::vector<float>& v
 }
 
 
-void icarus_signal_processing::Denoising::removeCoherentNoise2D(
-  ArrayFloat& waveLessCoherent,
-  const ArrayFloat& filteredWaveforms,
-  ArrayFloat& morphedWaveforms,
-  ArrayFloat& intrinsicRMS,
-  ArrayBool& selectVals,
-  ArrayBool& roi,
-  ArrayFloat& correctedMedians,
-  VectorFloat& thresholdVec,
-  const char filterName,
-  const unsigned int grouping,
-  const unsigned int structuringElementx,
-  const unsigned int structuringElementy,
-  const unsigned int window)
+void icarus_signal_processing::Denoising::removeCoherentNoise2D(ArrayFloat::iterator                                       waveLessCoherentItr,
+                                                                ArrayFloat::const_iterator                                 filteredWaveformsItr,
+                                                                ArrayFloat::iterator                                       morphedWaveformsItr,
+                                                                ArrayFloat::iterator                                       intrinsicRMSItr,
+                                                                ArrayBool::iterator                                        selectValsItr,
+                                                                ArrayBool::iterator                                        roiItr,
+                                                                ArrayFloat::iterator                                       correctedMediansItr,
+                                                                const icarus_signal_processing::IMorphologicalFunctions2D* filterFunction,
+                                                                VectorFloat::const_iterator                                thresholdItr,
+                                                                const unsigned int                                         numChannels,
+                                                                const unsigned int                                         grouping,
+                                                                const unsigned int                                         window)
 {
-  auto numChannels = filteredWaveforms.size();
-  auto nTicks = filteredWaveforms.at(0).size();
-  auto nGroups = numChannels / grouping;
+    auto nTicks  = filteredWaveformsItr->size();
+    auto nGroups = numChannels / grouping;
 
-  // Coherent noise subtracted denoised waveforms
-  waveLessCoherent.resize(filteredWaveforms.size());
-  for (auto& v : waveLessCoherent) {
-    v.resize(filteredWaveforms.at(0).size());
-  }
+    std::chrono::high_resolution_clock::time_point funcStartTime = std::chrono::high_resolution_clock::now();
 
-  // Regions to protect waveform from coherent noise subtraction.
-  selectVals.resize(filteredWaveforms.size());
-  for (auto& v : selectVals) {
-    v.resize(filteredWaveforms.at(0).size());
-  }
+    std::chrono::high_resolution_clock::time_point morphStart = funcStartTime;
 
-  roi.resize(filteredWaveforms.size());
-  for (auto& v : roi) {
-    v.resize(filteredWaveforms.at(0).size());
-  }
+    (*filterFunction)(filteredWaveformsItr, numChannels, morphedWaveformsItr);
 
-  correctedMedians.resize(nGroups);
-  for (auto& v : correctedMedians) {
-    v.resize(nTicks);
-  }
+    std::chrono::high_resolution_clock::time_point morphStop  = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point selStart = morphStop;
 
-  intrinsicRMS.resize(nGroups);
-  for (auto& v : intrinsicRMS) {
-    v.resize(nTicks);
-  }
+    getSelectVals(filteredWaveformsItr, morphedWaveformsItr, selectValsItr, roiItr, thresholdItr, numChannels, window);
 
-  icarus_signal_processing::Morph2D denoiser;
+    std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point noiseStart = selStop;
 
-  std::vector<std::vector<float>> dilation;
-  std::vector<std::vector<float>> erosion;
-  std::vector<std::vector<float>> average;
-  std::vector<std::vector<float>> gradient;
+    std::vector<float> v(grouping);
 
-  denoiser.getFilter2D(filteredWaveforms, structuringElementx,
-    structuringElementy, dilation, erosion, average, gradient);
+    for (size_t i=0; i<nTicks; ++i) 
+    {
+        for (size_t j=0; j<nGroups; ++j) 
+        {
+            size_t group_start = j * grouping;
+            size_t group_end = (j+1) * grouping;
+            // Compute median.
+            size_t idxV(0);
 
-  switch (filterName) {
-    case 'd':
-      getSelectVals(filteredWaveforms.begin(), dilation.begin(), 
-        selectVals.begin(), roi.begin(), thresholdVec.begin(), filteredWaveforms.size(), window);
-      morphedWaveforms = dilation;
-      break;
-    case 'e':
-      getSelectVals(filteredWaveforms.begin(), erosion.begin(), 
-        selectVals.begin(), roi.begin(), thresholdVec.begin(), filteredWaveforms.size(), window);
-      morphedWaveforms = erosion;
-      break;
-    case 'a':
-      getSelectVals(filteredWaveforms.begin(), average.begin(), 
-        selectVals.begin(), roi.begin(), thresholdVec.begin(), filteredWaveforms.size(), window);
-      morphedWaveforms = average;
-      break;
-    case 'g':
-      getSelectVals(filteredWaveforms.begin(), gradient.begin(), 
-        selectVals.begin(), roi.begin(), thresholdVec.begin(), filteredWaveforms.size(), window);
-      morphedWaveforms = gradient;
-      break;
-    default:
-      getSelectVals(filteredWaveforms.begin(), gradient.begin(), 
-        selectVals.begin(), roi.begin(), thresholdVec.begin(), filteredWaveforms.size(), window);
-      morphedWaveforms = gradient;
-      break;
-  }
+            for (size_t c=group_start; c<group_end; ++c) 
+            {
+                if (!selectValsItr[c][i]) v[idxV++] = filteredWaveformsItr[c][i];
+            }
 
-  for (size_t i=0; i<nTicks; ++i) {
-    for (size_t j=0; j<nGroups; ++j) {
-      size_t group_start = j * grouping;
-      size_t group_end = (j+1) * grouping;
-      // Compute median.
-      std::vector<float> v;
-      for (size_t c=group_start; c<group_end; ++c) {
-        if (!selectVals[c][i]) {
-          v.push_back(filteredWaveforms[c][i]);
+            float median = getMedian(v,idxV);
+
+            correctedMediansItr[j][i] = median;
+            for (auto k=group_start; k<group_end; ++k) waveLessCoherentItr[k][i] = filteredWaveformsItr[k][i] - median;
         }
-      }
-      float median(0.);
-      if (v.size() > 0) {
-        if (v.size() % 2 == 0) {
-          const auto m1 = v.begin() + v.size() / 2 - 1;
-          const auto m2 = v.begin() + v.size() / 2;
-          std::nth_element(v.begin(), m1, v.end());
-          const auto e1 = *m1;
-          std::nth_element(v.begin(), m2, v.end());
-          const auto e2 = *m2;
-          median = (e1 + e2) / 2.0;
-        } else {
-          const auto m = v.begin() + v.size() / 2;
-          std::nth_element(v.begin(), m, v.end());
-          median = *m;
-        }
-      }
-      correctedMedians[j][i] = median;
-      for (size_t k=group_start; k<group_end; ++k) {
-        if (!selectVals[k][i]) {
-          waveLessCoherent[k][i] = filteredWaveforms[k][i] - median;
-        } else {
-          waveLessCoherent[k][i] = filteredWaveforms[k][i];
-        }
-      }
     }
-  }
 
-  float rms = 0.0;
-  for (size_t i=0; i<nGroups; ++i) {
-    for (size_t j=0; j<nTicks; ++j) {
-      std::vector<float> v;
-      for (size_t k=i*grouping; k<(i+1)*grouping; ++k) {
-        v.push_back(waveLessCoherent[k][j]);
-      }
-      rms = std::sqrt(
-        std::inner_product(
-          v.begin(), v.end(), v.begin(), 0.) / float(v.size()));
-      intrinsicRMS[i][j] = rms;
+    std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
+
+    float rms(0.);
+    for (size_t i=0; i<nGroups; ++i) 
+    {
+        for (size_t j=0; j<nTicks; ++j) 
+        {
+            size_t idxV(0);
+            for (size_t k=i*grouping; k<(i+1)*grouping; ++k) v[idxV++] = waveLessCoherentItr[k][j];
+            rms = std::sqrt(std::inner_product(v.begin(), v.begin()+idxV, v.begin(), 0.) / float(v.size()));
+            intrinsicRMSItr[i][j] = rms;
+        }
     }
-  }
-  return;
+
+    std::chrono::high_resolution_clock::time_point funcStopTime = std::chrono::high_resolution_clock::now();
+  
+    std::chrono::duration<double> funcTime   = std::chrono::duration_cast<std::chrono::duration<double>>(funcStopTime - funcStartTime);
+    std::chrono::duration<double> morphTime  = std::chrono::duration_cast<std::chrono::duration<double>>(morphStop - morphStart);
+    std::chrono::duration<double> selTime    = std::chrono::duration_cast<std::chrono::duration<double>>(selStop - selStart);
+    std::chrono::duration<double> noiseTime  = std::chrono::duration_cast<std::chrono::duration<double>>(noiseStop - noiseStart);
+  
+    std::cout << "*** Denoising 2D ***  - # channels: " << numChannels << ", ticks: " << nTicks << ", groups: " << nGroups << std::endl;
+    std::cout << "                      - morph: " << morphTime.count() << ", sel: " << selTime.count() << ", noise: " << noiseTime.count() << ", total: " << funcTime.count() << std::endl;
+
+    return;
 }
 
 
