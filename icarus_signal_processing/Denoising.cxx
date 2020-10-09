@@ -2,6 +2,7 @@
 #define __SIGPROC_TOOLS_DENOISING_CXX__
 
 #include "Denoising.h"
+#include "LineDetection.h"
 
 #include <chrono>
 
@@ -98,43 +99,9 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(ArrayFloat::iter
     std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point noiseStart = selStop;
 
-    std::vector<float> v(grouping);
-
-    for (size_t i=0; i<nTicks; ++i) 
-    {
-        for (size_t j=0; j<nGroups; ++j) 
-        {
-            size_t group_start = j * grouping;
-            size_t group_end = (j+1) * grouping;
-            // Compute median.
-            size_t idxV(0);
-
-            for (size_t c=group_start; c<group_end; ++c) 
-            {
-                if (!selectValsItr[c][i]) v[idxV++] = filteredWaveformsItr[c][i];
-            }
-
-            float median = getMedian(v,idxV);
-
-            correctedMediansItr[j][i] = median;
-            for (auto k=group_start; k<group_end; ++k) waveLessCoherentItr[k][i] = filteredWaveformsItr[k][i] - median;
-        }
-    }
+    removeCoherentNoise(waveLessCoherentItr, filteredWaveformsItr, intrinsicRMSItr, selectValsItr, correctedMediansItr, numChannels, grouping);
 
     std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
-
-    float rms(0.);
-    for (size_t i=0; i<nGroups; ++i) 
-    {
-        for (size_t j=0; j<nTicks; ++j) 
-        {
-            size_t idxV(0);
-            for (size_t k=i*grouping; k<(i+1)*grouping; ++k) v[idxV++] = waveLessCoherentItr[k][j];
-            rms = std::sqrt(std::inner_product(v.begin(), v.begin()+idxV, v.begin(), 0.) / float(v.size()));
-            intrinsicRMSItr[i][j] = rms;
-        }
-    }
-
     std::chrono::high_resolution_clock::time_point funcStopTime = std::chrono::high_resolution_clock::now();
   
     std::chrono::duration<double> funcTime   = std::chrono::duration_cast<std::chrono::duration<double>>(funcStopTime - funcStartTime);
@@ -239,7 +206,6 @@ float icarus_signal_processing::Denoising::getMostProbable(std::vector<float>& v
     return mostProbable;
 }
 
-
 void icarus_signal_processing::Denoising::removeCoherentNoise2D(ArrayFloat::iterator                                       waveLessCoherentItr,
                                                                 ArrayFloat::const_iterator                                 filteredWaveformsItr,
                                                                 ArrayFloat::iterator                                       morphedWaveformsItr,
@@ -270,6 +236,90 @@ void icarus_signal_processing::Denoising::removeCoherentNoise2D(ArrayFloat::iter
     std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point noiseStart = selStop;
 
+    removeCoherentNoise(waveLessCoherentItr, filteredWaveformsItr, intrinsicRMSItr, selectValsItr, correctedMediansItr, numChannels, grouping);
+
+    std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point funcStopTime = std::chrono::high_resolution_clock::now();
+  
+    std::chrono::duration<double> funcTime   = std::chrono::duration_cast<std::chrono::duration<double>>(funcStopTime - funcStartTime);
+    std::chrono::duration<double> morphTime  = std::chrono::duration_cast<std::chrono::duration<double>>(morphStop - morphStart);
+    std::chrono::duration<double> selTime    = std::chrono::duration_cast<std::chrono::duration<double>>(selStop - selStart);
+    std::chrono::duration<double> noiseTime  = std::chrono::duration_cast<std::chrono::duration<double>>(noiseStop - noiseStart);
+  
+    std::cout << "*** Denoising 2D ***  - # channels: " << numChannels << ", ticks: " << nTicks << ", groups: " << nGroups << std::endl;
+    std::cout << "                      - morph: " << morphTime.count() << ", sel: " << selTime.count() << ", noise: " << noiseTime.count() << ", total: " << funcTime.count() << std::endl;
+
+    return;
+}
+
+void icarus_signal_processing::Denoising::removeCoherentNoiseHough(ArrayFloat::iterator                                       waveLessCoherentItr,
+                                                                   ArrayFloat::const_iterator                                 filteredWaveformsItr,
+                                                                   ArrayFloat::iterator                                       morphedWaveformsItr,
+                                                                   ArrayFloat::iterator                                       intrinsicRMSItr,
+                                                                   ArrayBool::iterator                                        selectValsItr,
+                                                                   ArrayBool::iterator                                        roiItr,
+                                                                   ArrayFloat::iterator                                       correctedMediansItr,
+                                                                   const icarus_signal_processing::IMorphologicalFunctions2D* filterFunction,
+                                                                   VectorFloat::const_iterator                                thresholdItr,
+                                                                   const unsigned int                                         numChannels,
+                                                                   const unsigned int                                         grouping,
+                                                                   const unsigned int                                         window)
+{
+    auto nTicks  = filteredWaveformsItr->size();
+    auto nGroups = numChannels / grouping;
+
+    std::chrono::high_resolution_clock::time_point funcStartTime = std::chrono::high_resolution_clock::now();
+
+    std::chrono::high_resolution_clock::time_point morphStart = funcStartTime;
+
+    (*filterFunction)(filteredWaveformsItr, numChannels, morphedWaveformsItr);
+
+    std::chrono::high_resolution_clock::time_point morphStop  = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point selStart = morphStop;
+
+    ArrayBool roughSelectVals(numChannels,VectorBool(nTicks));
+
+    getSelectVals(filteredWaveformsItr, morphedWaveformsItr, roughSelectVals.begin(), roiItr, thresholdItr, numChannels, window);
+
+    ArrayBool localSelectVals = roughSelectVals;
+
+    LineDetection lineModule;
+
+    lineModule.refineSelectVals(roughSelectVals, localSelectVals);
+
+    for(size_t channelIdx = 0; channelIdx < numChannels; channelIdx++)
+        *(selectValsItr + channelIdx) = localSelectVals[channelIdx];
+
+    std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point noiseStart = selStop;
+
+    removeCoherentNoise(waveLessCoherentItr, filteredWaveformsItr, intrinsicRMSItr, selectValsItr, correctedMediansItr, numChannels, grouping);
+
+    std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point funcStopTime = std::chrono::high_resolution_clock::now();
+  
+    std::chrono::duration<double> funcTime   = std::chrono::duration_cast<std::chrono::duration<double>>(funcStopTime - funcStartTime);
+    std::chrono::duration<double> morphTime  = std::chrono::duration_cast<std::chrono::duration<double>>(morphStop - morphStart);
+    std::chrono::duration<double> selTime    = std::chrono::duration_cast<std::chrono::duration<double>>(selStop - selStart);
+    std::chrono::duration<double> noiseTime  = std::chrono::duration_cast<std::chrono::duration<double>>(noiseStop - noiseStart);
+  
+    std::cout << "*** Denoising 2D ***  - # channels: " << numChannels << ", ticks: " << nTicks << ", groups: " << nGroups << std::endl;
+    std::cout << "                      - morph: " << morphTime.count() << ", sel: " << selTime.count() << ", noise: " << noiseTime.count() << ", total: " << funcTime.count() << std::endl;
+
+    return;
+}
+
+void icarus_signal_processing::Denoising::removeCoherentNoise(ArrayFloat::iterator       waveLessCoherentItr,
+                                                              ArrayFloat::const_iterator filteredWaveformsItr,
+                                                              ArrayFloat::iterator       intrinsicRMSItr,
+                                                              ArrayBool::iterator        selectValsItr,
+                                                              ArrayFloat::iterator       correctedMediansItr,
+                                                              const unsigned int         numChannels,
+                                                              const unsigned int         grouping)
+{
+    auto nTicks  = filteredWaveformsItr->size();
+    auto nGroups = numChannels / grouping;
+
     std::vector<float> v(grouping);
 
     for (size_t i=0; i<nTicks; ++i) 
@@ -293,8 +343,6 @@ void icarus_signal_processing::Denoising::removeCoherentNoise2D(ArrayFloat::iter
         }
     }
 
-    std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
-
     float rms(0.);
     for (size_t i=0; i<nGroups; ++i) 
     {
@@ -306,19 +354,8 @@ void icarus_signal_processing::Denoising::removeCoherentNoise2D(ArrayFloat::iter
             intrinsicRMSItr[i][j] = rms;
         }
     }
-
-    std::chrono::high_resolution_clock::time_point funcStopTime = std::chrono::high_resolution_clock::now();
   
-    std::chrono::duration<double> funcTime   = std::chrono::duration_cast<std::chrono::duration<double>>(funcStopTime - funcStartTime);
-    std::chrono::duration<double> morphTime  = std::chrono::duration_cast<std::chrono::duration<double>>(morphStop - morphStart);
-    std::chrono::duration<double> selTime    = std::chrono::duration_cast<std::chrono::duration<double>>(selStop - selStart);
-    std::chrono::duration<double> noiseTime  = std::chrono::duration_cast<std::chrono::duration<double>>(noiseStop - noiseStart);
-  
-    std::cout << "*** Denoising 2D ***  - # channels: " << numChannels << ", ticks: " << nTicks << ", groups: " << nGroups << std::endl;
-    std::cout << "                      - morph: " << morphTime.count() << ", sel: " << selTime.count() << ", noise: " << noiseTime.count() << ", total: " << funcTime.count() << std::endl;
-
     return;
 }
-
 
 #endif
