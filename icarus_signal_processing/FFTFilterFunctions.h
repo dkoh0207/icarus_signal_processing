@@ -100,7 +100,7 @@ public:
     /**
      *  @brief  Constructor
      */
-    explicit LowPassFFTFilter(const unsigned int structuringElement) : fStructuringElement(structuringElement) {}
+    explicit LowPassFFTFilter(const unsigned int structuringElement) {}//: fStructuringElement(structuringElement) {}, unused right now
 
     /**
      *  @brief  Destructor
@@ -116,7 +116,7 @@ public:
 private:
     void lowPassFilter(Waveform<float>&, int) const;
 
-    unsigned int fStructuringElement;
+    //unsigned int fStructuringElement; wesk, 10/22/20, unused right now
 
     using KernelVec = std::vector<Waveform<float>>;
 
