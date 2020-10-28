@@ -12,7 +12,7 @@
 
     @{*/
 #ifndef __icarus_signal_processing_MORPH2D_H__
-#define __icarus_signal_processing_MORPH2D_H__icarus_signal_processing
+#define __icarus_signal_processing_MORPH2D_H__
 
 #include <iostream>
 #include <vector>
