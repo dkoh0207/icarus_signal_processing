@@ -59,8 +59,8 @@ public:
     /**
      *  @brief  Constructor
      */
-     explicit Dilation2D(const unsigned int structuringElementX, const unsigned int structuringElementY) : 
-                         fStructuringElementX(structuringElementX), fStructuringElementY(structuringElementY) 
+    explicit Dilation2D(const unsigned int structuringElementX, const unsigned int structuringElementY) : 
+                        fStructuringElementX(structuringElementX), fStructuringElementY(structuringElementY) 
              {}
 
     /**
@@ -92,7 +92,7 @@ public:
      *  @brief  Constructor
      */
     explicit Erosion2D(const unsigned int structuringElementX, const unsigned int structuringElementY) : 
-                            fStructuringElementX(structuringElementX), fStructuringElementY(structuringElementY) 
+                        fStructuringElementX(structuringElementX), fStructuringElementY(structuringElementY) 
              {}
 
     /**
@@ -124,7 +124,7 @@ public:
      *  @brief  Constructor
      */
     explicit Gradient2D(const unsigned int structuringElementX, const unsigned int structuringElementY) : 
-                            fStructuringElementX(structuringElementX), fStructuringElementY(structuringElementY) 
+                        fStructuringElementX(structuringElementX), fStructuringElementY(structuringElementY) 
              {}
 
     /**
@@ -155,8 +155,8 @@ public:
     /**
      *  @brief  Constructor
      */
-    explicit Average2D(const unsigned int structuringElementX, const unsigned int structuringElementY) //: 
-    //                        fStructuringElementX(structuringElementX), fStructuringElementY(structuringElementY) 
+    explicit Average2D(const unsigned int structuringElementX, const unsigned int structuringElementY) : 
+                        fStructuringElementX(structuringElementX), fStructuringElementY(structuringElementY) 
              {}
 
     /**
@@ -170,8 +170,8 @@ public:
     void operator()(ArrayFloat::const_iterator,  const unsigned int, ArrayFloat::iterator)  const override;
 
 private:
-    //unsigned int fStructuringElementX;
-    //unsigned int fStructuringElementY;
+    unsigned int fStructuringElementX;
+    unsigned int fStructuringElementY;
 };
 
 /**
@@ -187,8 +187,8 @@ public:
     /**
      *  @brief  Constructor
      */
-    explicit Median2D(const unsigned int structuringElementX, const unsigned int structuringElementY) //: 
-    //                    fStructuringElementX(structuringElementX), fStructuringElementY(structuringElementY) 
+    explicit Median2D(const unsigned int structuringElementX, const unsigned int structuringElementY) : 
+                        fStructuringElementX(structuringElementX), fStructuringElementY(structuringElementY) 
              {}
 
     /**
@@ -202,8 +202,8 @@ public:
     void operator()(ArrayFloat::const_iterator,  const unsigned int, ArrayFloat::iterator)  const override;
 
 private:
-    //unsigned int fStructuringElementX;
-    //unsigned int fStructuringElementY;
+    unsigned int fStructuringElementX;
+    unsigned int fStructuringElementY;
 };
 
 /**
