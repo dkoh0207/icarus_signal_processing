@@ -31,13 +31,11 @@ void icarus_signal_processing::Denoising::getSelectVals(ArrayFloat::const_iterat
 
         for (size_t j=0; j<baseVec.size(); ++j) baseVec[j] = morphedWaveformsItr[i][j] - median;
 
-        float rms;
-        rms = std::sqrt(std::inner_product(baseVec.begin(), baseVec.end(), baseVec.begin(), 0.) / float(baseVec.size()));
-        float threshold;
-        threshold = (*(thresholdItr + i)) * rms;
+        float rms       = std::sqrt(std::inner_product(baseVec.begin(), baseVec.end(), baseVec.begin(), 0.) / float(baseVec.size()));
+        float threshold = (*(thresholdItr + i)) * rms;
 
         for (size_t j=0; j<nTicks; ++j) {
-            if (std::fabs(morphedWaveformsItr[i][j]) > threshold) {
+            if (std::fabs(baseVec[j]) > threshold) {
                 // Check Bounds
                 selectValsItr[i][j] = true;
                 //int lb = j - (int) window/4;
