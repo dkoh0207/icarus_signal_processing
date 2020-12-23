@@ -54,6 +54,20 @@ public:
                                const unsigned int 
     );
 
+    void removeCoherentNoise1D_Ave(ArrayFloat::iterator,
+                                   ArrayFloat::const_iterator,
+                                   ArrayFloat::iterator,
+                                   ArrayFloat::iterator,
+                                   ArrayBool::iterator,
+                                   ArrayBool::iterator,
+                                   ArrayFloat::iterator,
+                                   FilterFunctionVec::const_iterator,
+                                   VectorFloat::const_iterator,
+                                   const unsigned int,
+                                   const unsigned int,
+                                   const unsigned int 
+    );    
+
     void removeCoherentNoise2D(ArrayFloat::iterator,
                                ArrayFloat::const_iterator,
                                ArrayFloat::iterator,
@@ -87,7 +101,6 @@ public:
 
 private:
     void getSelectVals(ArrayFloat::const_iterator,
-                       ArrayFloat::const_iterator,
                        ArrayBool::iterator,
                        ArrayBool::iterator,
                        VectorFloat::const_iterator,

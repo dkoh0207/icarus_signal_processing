@@ -3,19 +3,19 @@
 
 #include "Denoising.h"
 #include "LineDetection.h"
+#include "WaveformTools.h"
 
 #include <chrono>
 
 
-void icarus_signal_processing::Denoising::getSelectVals(ArrayFloat::const_iterator  waveformsItr,
-                                                        ArrayFloat::const_iterator  morphedWaveformsItr,
+void icarus_signal_processing::Denoising::getSelectVals(ArrayFloat::const_iterator  morphedWaveformsItr,
                                                         ArrayBool::iterator         selectValsItr,
                                                         ArrayBool::iterator         roiItr,
                                                         VectorFloat::const_iterator thresholdItr,
                                                         const unsigned int          numChannels,
                                                         const unsigned int          window)
 {
-    auto nTicks = waveformsItr[0].size();
+    auto nTicks = morphedWaveformsItr[0].size();
 
     // Set a protection width
     int halfWidth = std::max(int(window/8),1);
@@ -34,21 +34,36 @@ void icarus_signal_processing::Denoising::getSelectVals(ArrayFloat::const_iterat
         float rms       = std::sqrt(std::inner_product(baseVec.begin(), baseVec.end(), baseVec.begin(), 0.) / float(baseVec.size()));
         float threshold = (*(thresholdItr + i)) * rms;
 
-        for (size_t j=0; j<nTicks; ++j) {
-            if (std::fabs(baseVec[j]) > threshold) {
+//        threshold = std::min(threshold,float(12.));
+
+        int lb(-2 * halfWidth);
+
+        for (size_t j=0; j<nTicks; ++j) 
+        {
+            // Are we over threshold?
+            if (std::fabs(baseVec[j]) > threshold) 
+            {
                 // Check Bounds
                 selectValsItr[i][j] = true;
-                //int lb = j - (int) window/4;
-                //int ub = j + (int) window/4 + 1;
-                int lb = j - halfWidth;
-                int ub = j + halfWidth + 1;
-                size_t lowerBound = std::max(lb, 0);
-                size_t upperBound = std::min(ub, (int) nTicks);
-                for (size_t k=lowerBound; k<upperBound; ++k) {
-                    roiItr[i][k] = true;
-                }
-            } else {
+
+                // Check ROI limits
+                if (lb < -halfWidth) lb = j - halfWidth;
+            } 
+            else 
+            {
                 selectValsItr[i][j] = false;
+
+                // Check if we had gone over threshold and need to set our ROI
+                if (lb > -(halfWidth+1))
+                {
+                    int    ub         = j + halfWidth;
+                    size_t lowerBound = std::max(lb, 0);
+                    size_t upperBound = std::min(ub, (int) nTicks);
+
+                    for (size_t k=lowerBound; k<upperBound; ++k) roiItr[i][k] = true;
+                }
+
+                lb = -2 * halfWidth;
             }
         }
     }
@@ -92,7 +107,7 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(ArrayFloat::iter
     std::chrono::high_resolution_clock::time_point morphStop  = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point selStart = morphStop;
 
-    getSelectVals(filteredWaveformsItr, morphedWaveformsItr, selectValsItr, roiItr, thresholdItr, numChannels, window);
+    getSelectVals(morphedWaveformsItr, selectValsItr, roiItr, thresholdItr, numChannels, window);
 
     std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point noiseStart = selStop;
@@ -113,13 +128,155 @@ void icarus_signal_processing::Denoising::removeCoherentNoise1D(ArrayFloat::iter
     return;
 }
 
+void icarus_signal_processing::Denoising::removeCoherentNoise1D_Ave(ArrayFloat::iterator              waveLessCoherentItr,
+                                                                    ArrayFloat::const_iterator        filteredWaveformsItr,
+                                                                    ArrayFloat::iterator              morphedWaveformsItr,
+                                                                    ArrayFloat::iterator              intrinsicRMSItr,
+                                                                    ArrayBool::iterator               selectValsItr,
+                                                                    ArrayBool::iterator               roiItr,
+                                                                    ArrayFloat::iterator              correctedMediansItr,
+                                                                    FilterFunctionVec::const_iterator filterFunctionsItr,
+                                                                    VectorFloat::const_iterator       thresholdItr,
+                                                                    const unsigned int                numChannels,
+                                                                    const unsigned int                grouping,
+                                                                    const unsigned int                window)
+{
+    auto nTicks  = filteredWaveformsItr->size();
+    auto nGroups = numChannels / grouping;
+
+    std::chrono::high_resolution_clock::time_point funcStartTime = std::chrono::high_resolution_clock::now();
+
+    std::chrono::high_resolution_clock::time_point morphStart = funcStartTime;
+
+    // Plan here will be form morphed waveforms from the average smoothed waveform of the group
+    // To start need a holder for the average waveform...
+    VectorFloat aveWaveform(nTicks);
+    size_t      channelIdx(0);
+    size_t      morphIdx(0);
+
+    // get an instance of the waveform tools
+    icarus_signal_processing::WaveformTools<float> waveformTools;
+    
+    // Initiate the outer loop over channels which will actually be over groups
+    while(channelIdx < numChannels)
+    {
+        std::fill(aveWaveform.begin(),aveWaveform.end(),0.);
+
+        for(size_t innerIdx = 0; innerIdx < grouping; innerIdx++)
+        {
+            std::transform(aveWaveform.begin(),aveWaveform.end(),(*(filteredWaveformsItr + channelIdx+innerIdx)).begin(), aveWaveform.begin(), std::plus<float>());
+        }
+
+        float normFactor(1./float(grouping));
+
+        std::transform(aveWaveform.begin(),aveWaveform.end(),aveWaveform.begin(),std::bind(std::multiplies<float>(),std::placeholders::_1,normFactor));
+
+        // Smooth to try to take out high frequency fluctuations
+        waveformTools.medianSmooth(aveWaveform,aveWaveform,5);
+
+        // Now run morphological filter
+        const icarus_signal_processing::IMorphologicalFunctions1D* func = (*(filterFunctionsItr + channelIdx)).get();
+
+        (*func)(aveWaveform, *(morphedWaveformsItr + morphIdx++));
+
+        // Make sure the channelIdx keeps pace
+        channelIdx += grouping;
+    }
+
+    std::chrono::high_resolution_clock::time_point morphStop  = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point selStart = morphStop;
+
+    getSelectVals(morphedWaveformsItr, selectValsItr, roiItr, thresholdItr, nGroups, window);
+
+    std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point noiseStart = selStop;
+
+    VectorFloat v(grouping);
+    ArrayFloat  smoothWave(numChannels);
+
+    for (size_t i=0; i<nTicks; ++i) 
+    {
+        for (size_t j=0; j<nGroups; ++j) 
+        {
+            size_t group_start = j * grouping;
+            size_t group_end = (j+1) * grouping;
+
+            // Compute median.
+            size_t idxV(0);
+
+            for (size_t c=group_start; c<group_end; ++c) 
+            {
+                if (i==0) waveformTools.triangleSmooth(filteredWaveformsItr[c],smoothWave[c]);
+                if (!selectValsItr[j][i] && std::abs(filteredWaveformsItr[c][i]) < 20) v[idxV++] = smoothWave[c][i]; //filteredWaveformsItr[c][i];
+                //if (!selectValsItr[j][i]) v[idxV++] = smoothWave[c][i]; //filteredWaveformsItr[c][i];
+            }
+
+            if (idxV > 0)
+            {
+                float median   = getMedian(v,idxV);
+//                float mostProb = getMostProbable(v,idxV);
+//                float average  = std::accumulate(v.begin(),v.end(),0.) / float(idxV);
+
+                std::transform(v.begin(),v.begin()+idxV,v.begin(),std::bind(std::minus<float>(),std::placeholders::_1,median));
+                float rms = std::sqrt(std::inner_product(v.begin(),v.begin()+idxV,v.begin(),0.) / float(v.size()));
+
+                std::sort(v.begin(),v.begin()+idxV,[](const auto& left,const auto& right){return std::abs(left) < std::abs(right);});
+
+                while(idxV > 0)
+                {
+                    if (std::abs(v[idxV-1]) < rms) break;
+                    idxV--;
+                }
+
+                float tempMedian = getMedian(v,idxV);
+
+//                std::cout << ">tick: " << i << ", group: " << j << ", median: " << median << ", mostProb: " << mostProb << ", average: " << average << ", rms: " << rms << ", tempMedian: " << tempMedian << std::endl;
+
+                median += tempMedian;
+
+                correctedMediansItr[j][i] = median;
+                for (auto k=group_start; k<group_end; ++k) waveLessCoherentItr[k][i] = filteredWaveformsItr[k][i] - median;
+            }
+        }
+    }
+
+    float rms(0.);
+    for (size_t i=0; i<nGroups; ++i) 
+    {
+        for (size_t j=0; j<nTicks; ++j) 
+        {
+            size_t idxV(0);
+            for (size_t k=i*grouping; k<(i+1)*grouping; ++k) v[idxV++] = waveLessCoherentItr[k][j];
+            rms = std::sqrt(std::inner_product(v.begin(), v.begin()+idxV, v.begin(), 0.) / float(v.size()));
+            intrinsicRMSItr[i][j] = rms;
+        }
+    }
+
+    std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point funcStopTime = std::chrono::high_resolution_clock::now();
+  
+    std::chrono::duration<double> funcTime   = std::chrono::duration_cast<std::chrono::duration<double>>(funcStopTime - funcStartTime);
+    std::chrono::duration<double> morphTime  = std::chrono::duration_cast<std::chrono::duration<double>>(morphStop - morphStart);
+    std::chrono::duration<double> selTime    = std::chrono::duration_cast<std::chrono::duration<double>>(selStop - selStart);
+    std::chrono::duration<double> noiseTime  = std::chrono::duration_cast<std::chrono::duration<double>>(noiseStop - noiseStart);
+  
+    std::cout << "*** Denoising ***  - # channels: " << numChannels << ", ticks: " << nTicks << ", groups: " << nGroups << std::endl;
+    std::cout << "                   - morph: " << morphTime.count() << ", sel: " << selTime.count() << ", noise: " << noiseTime.count() << ", total: " << funcTime.count() << std::endl;
+  
+    return;
+}
+
 float icarus_signal_processing::Denoising::getMedian(std::vector<float>& vals, const unsigned int nVals) const
 {
     float median(0.);
 
-    if (nVals > 2) 
+    if (nVals > 0) 
     {
-        if (nVals % 2 == 0) 
+        if (nVals < 3)
+        {
+            median = std::accumulate(vals.begin(),vals.begin()+nVals,0.) / float(nVals);
+        }
+        else if (nVals % 2 == 0) 
         {
             const auto m1 = vals.begin() + nVals / 2 - 1;
             const auto m2 = vals.begin() + nVals / 2;
@@ -229,7 +386,7 @@ void icarus_signal_processing::Denoising::removeCoherentNoise2D(ArrayFloat::iter
     std::chrono::high_resolution_clock::time_point morphStop  = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point selStart = morphStop;
 
-    getSelectVals(filteredWaveformsItr, morphedWaveformsItr, selectValsItr, roiItr, thresholdItr, numChannels, window);
+    getSelectVals(morphedWaveformsItr, selectValsItr, roiItr, thresholdItr, numChannels, window);
 
     std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point noiseStart = selStop;
@@ -245,6 +402,42 @@ void icarus_signal_processing::Denoising::removeCoherentNoise2D(ArrayFloat::iter
     std::chrono::duration<double> noiseTime  = std::chrono::duration_cast<std::chrono::duration<double>>(noiseStop - noiseStart);
   
     std::cout << "*** Denoising 2D ***  - # channels: " << numChannels << ", ticks: " << nTicks << ", groups: " << nGroups << std::endl;
+
+    std::vector<float> v(grouping);
+
+    for (size_t i=0; i<nTicks; ++i) 
+    {
+        for (size_t j=0; j<nGroups; ++j) 
+        {
+            size_t group_start = j * grouping;
+            size_t group_end = (j+1) * grouping;
+            // Compute median.
+            size_t idxV(0);
+
+            for (size_t c=group_start; c<group_end; ++c) 
+            {
+                if (!selectValsItr[c][i]) v[idxV++] = filteredWaveformsItr[c][i];
+            }
+
+            float median = getMedian(v,idxV);
+
+            correctedMediansItr[j][i] = median;
+            for (auto k=group_start; k<group_end; ++k) waveLessCoherentItr[k][i] = filteredWaveformsItr[k][i] - median;
+        }
+    }
+
+    float rms(0.);
+    for (size_t i=0; i<nGroups; ++i) 
+    {
+        for (size_t j=0; j<nTicks; ++j) 
+        {
+            size_t idxV(0);
+            for (size_t k=i*grouping; k<(i+1)*grouping; ++k) v[idxV++] = waveLessCoherentItr[k][j];
+            rms = std::sqrt(std::inner_product(v.begin(), v.begin()+idxV, v.begin(), 0.) / float(v.size()));
+            intrinsicRMSItr[i][j] = rms;
+        }
+    }
+ 
     std::cout << "                      - morph: " << morphTime.count() << ", sel: " << selTime.count() << ", noise: " << noiseTime.count() << ", total: " << funcTime.count() << std::endl;
 
     return;
@@ -277,7 +470,7 @@ void icarus_signal_processing::Denoising::removeCoherentNoiseHough(ArrayFloat::i
 
     ArrayBool roughSelectVals(numChannels,VectorBool(nTicks));
 
-    getSelectVals(filteredWaveformsItr, morphedWaveformsItr, roughSelectVals.begin(), roiItr, thresholdItr, numChannels, window);
+    getSelectVals(morphedWaveformsItr, roughSelectVals.begin(), roiItr, thresholdItr, numChannels, window);
 
     ArrayBool localSelectVals = roughSelectVals;
 
@@ -318,7 +511,10 @@ void icarus_signal_processing::Denoising::removeCoherentNoise(ArrayFloat::iterat
     auto nTicks  = filteredWaveformsItr->size();
     auto nGroups = numChannels / grouping;
 
-    std::vector<float> v(grouping);
+    // get an instance of the waveform tools
+    icarus_signal_processing::WaveformTools<float> waveformTools;
+
+    VectorFloat v(grouping);
 
     for (size_t i=0; i<nTicks; ++i) 
     {
@@ -326,6 +522,7 @@ void icarus_signal_processing::Denoising::removeCoherentNoise(ArrayFloat::iterat
         {
             size_t group_start = j * grouping;
             size_t group_end = (j+1) * grouping;
+
             // Compute median.
             size_t idxV(0);
 
@@ -334,10 +531,35 @@ void icarus_signal_processing::Denoising::removeCoherentNoise(ArrayFloat::iterat
                 if (!selectValsItr[c][i]) v[idxV++] = filteredWaveformsItr[c][i];
             }
 
-            float median = getMedian(v,idxV);
+            if (idxV > 0)
+            {
+                std::fill(v.begin()+idxV,v.end(),v.back());
 
-            correctedMediansItr[j][i] = median;
-            for (auto k=group_start; k<group_end; ++k) waveLessCoherentItr[k][i] = filteredWaveformsItr[k][i] - median;
+                if (idxV > 3) waveformTools.triangleSmooth(v,v);
+
+                float median   = getMedian(v,idxV);
+
+                std::transform(v.begin(),v.begin()+idxV,v.begin(),std::bind(std::minus<float>(),std::placeholders::_1,median));
+                float rms = std::sqrt(std::inner_product(v.begin(),v.begin()+idxV,v.begin(),0.) / float(v.size()));
+
+                std::sort(v.begin(),v.begin()+idxV,[](const auto& left,const auto& right){return std::abs(left) < std::abs(right);});
+
+                while(idxV > 0)
+                {
+                    if (std::abs(v[idxV-1]) < 1.5 * rms) break;
+                    idxV--;
+                }
+
+//                if (idxV > 3) median += getMedian(v,idxV);
+                if (idxV > 3) median += std::accumulate(v.begin(),v.begin()+idxV,0.) / float(idxV);
+
+//                  float mostProb = getMostProbable(v,idxV);
+//                  float average  = std::accumulate(v.begin(),v.end(),0.) / float(idxV);
+//                  std::cout << ">tick: " << i << ", group: " << j << ", median: " << median << ", mostProb: " << mostProb << ", average: " << average << ", rms: " << rms << ", tempMedian: " << tempMedian << std::endl;
+
+                correctedMediansItr[j][i] = median;
+                for (auto k=group_start; k<group_end; ++k) waveLessCoherentItr[k][i] = filteredWaveformsItr[k][i] - median;
+            }
         }
     }
 
