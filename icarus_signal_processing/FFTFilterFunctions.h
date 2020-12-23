@@ -44,8 +44,8 @@ public:
    *
    *  @param Waveform  The waveform to process
    */
-   virtual void operator()(Waveform<float>&,  int)  const = 0;
-   virtual void operator()(Waveform<double>&, int)  const = 0;
+   virtual void operator()(Waveform<float>&)  const = 0;
+   virtual void operator()(Waveform<double>&) const = 0;
 };
 
 using FFTFilterFunctionVec = std::vector<std::unique_ptr<IFFTFilterFunction>>; 
@@ -63,7 +63,7 @@ public:
     /**
      *  @brief  Constructor
      */
-    explicit HighPassFFTFilter(const std::vector<double>&, const std::vector<double>&);
+    explicit HighPassFFTFilter(const double&, const double&);
 
     /**
      *  @brief  Destructor
@@ -73,15 +73,15 @@ public:
     /**
     *  @brief Interface functions which provided templated access
     */
-    void operator()(Waveform<float>&,  int)  const override;
-    void operator()(Waveform<double>&, int)  const override;
+    void operator()(Waveform<float>&)  const override;
+    void operator()(Waveform<double>&) const override;
 
 private:
-    void highPassFilter(Waveform<float>&, int) const;
+    void highPassFilter(Waveform<float>&) const;
 
     using KernelVec = std::vector<std::complex<float>>;
 
-    std::vector<KernelVec> fHighPassFilterKernels;
+    KernelVec fHighPassFilterKernel;
 
     // Keep track of the FFT 
     std::unique_ptr<icarus_signal_processing::ICARUSFFT<float>> fFFT; ///< Object to handle thread safe FFT
@@ -110,11 +110,11 @@ public:
     /**
     *  @brief Interface functions which provided templated access
     */
-    void operator()(Waveform<float>&,  int)  const override;
-    void operator()(Waveform<double>&, int)  const override;
+    void operator()(Waveform<float>&)  const override;
+    void operator()(Waveform<double>&) const override;
 
 private:
-    void lowPassFilter(Waveform<float>&, int) const;
+    void lowPassFilter(Waveform<float>&) const;
 
     unsigned int fStructuringElement;
 
@@ -136,7 +136,7 @@ public:
     /**
      *  @brief  Constructor
      */
-    explicit WindowFFTFilter(const std::vector<std::pair<double,double>>&, const std::vector<std::pair<double,double>>&);
+    explicit WindowFFTFilter(const std::pair<double,double>&, const std::pair<double,double>&);
 
     /**
      *  @brief  Destructor
@@ -146,18 +146,47 @@ public:
     /**
     *  @brief Interface functions which provided templated access
     */
-    void operator()(Waveform<float>&,  int)  const override;
-    void operator()(Waveform<double>&, int)  const override;
+    void operator()(Waveform<float>&)  const override;
+    void operator()(Waveform<double>&) const override;
 
 private:
-    void windowFilter(Waveform<float>&, int) const;
+    void windowFilter(Waveform<float>&) const;
 
     using KernelVec = std::vector<std::complex<float>>;
 
-    std::vector<KernelVec> fWindowFilterKernels;
+    KernelVec fWindowFilterKernel;
 
     // Keep track of the FFT 
     std::unique_ptr<icarus_signal_processing::ICARUSFFT<float>> fFFT; ///< Object to handle thread safe FFT
+};
+
+/**
+* \class No Filter 
+* 
+* \ingroup icarus_signal_processing
+* 
+* \brief This does not filtering (but allows to be included in a list of filter functions)
+*/
+class NoFFTFilter : virtual public IFFTFilterFunction
+{
+public:
+    /**
+     *  @brief  Constructor
+     */
+    explicit NoFFTFilter() {}
+
+    /**
+     *  @brief  Destructor
+     */
+    ~NoFFTFilter() {}
+ 
+    /**
+    *  @brief Interface functions which provided templated access
+    */
+    void operator()(Waveform<float>&)  const override {return;}
+    void operator()(Waveform<double>&) const override {return;}
+
+private:
 };
 
 }
