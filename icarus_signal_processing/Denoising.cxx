@@ -531,14 +531,18 @@ void icarus_signal_processing::Denoising::removeCoherentNoise(ArrayFloat::iterat
                 if (!selectValsItr[c][i]) v[idxV++] = filteredWaveformsItr[c][i];
             }
 
+            float median(0.);
+
+            // If we have values which are not "protected" then compute the median
             if (idxV > 0)
             {
                 std::fill(v.begin()+idxV,v.end(),v.back());
 
                 if (idxV > 3) waveformTools.triangleSmooth(v,v);
 
-                float median   = getMedian(v,idxV);
+                median   = getMedian(v,idxV);
 
+                // Try to improve by throwing out the values at the extremes
                 std::transform(v.begin(),v.begin()+idxV,v.begin(),std::bind(std::minus<float>(),std::placeholders::_1,median));
                 float rms = std::sqrt(std::inner_product(v.begin(),v.begin()+idxV,v.begin(),0.) / float(v.size()));
 
@@ -546,23 +550,23 @@ void icarus_signal_processing::Denoising::removeCoherentNoise(ArrayFloat::iterat
 
                 while(idxV > 0)
                 {
-                    if (std::abs(v[idxV-1]) < 1.5 * rms) break;
+                    if (std::abs(v[idxV-1]) < 2.0 * rms) break;
                     idxV--;
                 }
 
-//                if (idxV > 3) median += getMedian(v,idxV);
-                if (idxV > 3) median += std::accumulate(v.begin(),v.begin()+idxV,0.) / float(idxV);
-
-//                  float mostProb = getMostProbable(v,idxV);
-//                  float average  = std::accumulate(v.begin(),v.end(),0.) / float(idxV);
-//                  std::cout << ">tick: " << i << ", group: " << j << ", median: " << median << ", mostProb: " << mostProb << ", average: " << average << ", rms: " << rms << ", tempMedian: " << tempMedian << std::endl;
-
-                correctedMediansItr[j][i] = median;
-                for (auto k=group_start; k<group_end; ++k) waveLessCoherentItr[k][i] = filteredWaveformsItr[k][i] - median;
+                // Try to get the improved value for the median. Note we have to add to the previously calculated quantity since it
+                // was subtracted from the vector of values already. 
+//                if (idxV > 5) median += std::accumulate(v.begin(),v.begin()+idxV,0.) / float(idxV);
+                if (idxV > 5) median += getMedian(v,idxV);
             }
+                
+            // Add correction
+            correctedMediansItr[j][i] = median;
+            for (auto k=group_start; k<group_end; ++k) waveLessCoherentItr[k][i] = filteredWaveformsItr[k][i] - median;
         }
     }
 
+    // Now compute the rms for the corrected waveforms
     float rms(0.);
     for (size_t i=0; i<nGroups; ++i) 
     {
