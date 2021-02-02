@@ -2,7 +2,7 @@
 #define __SIGPROC_TOOLS_DENOISING_CXX__
 
 #include "Denoising.h"
-#include "LineDetection.h"
+#include "icarus_signal_processing/Detection/LineDetection.h"
 #include "WaveformTools.h"
 
 #include <chrono>

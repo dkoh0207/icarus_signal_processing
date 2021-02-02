@@ -1,7 +1,12 @@
+add_subdirectory(Filters)
+add_subdirectory(Detection)
+
 add_definitions(-DEIGEN_FFTW_DEFAULT)
 
 art_make( 
           LIB_LIBRARIES 
+                          icarus_signal_processing_Detection
+                          icarus_signal_processing_Filters
                           ${ICARUS_FFTW_LIBRARIES}
                           ${ROOT_GEOM}
                           ${ROOT_XMLIO}

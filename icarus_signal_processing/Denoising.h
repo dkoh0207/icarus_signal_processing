@@ -22,8 +22,8 @@
 #include <numeric>
 #include <cmath>
 #include <functional>
-#include "MorphologicalFunctions1D.h"
-#include "MorphologicalFunctions2D.h"
+#include "icarus_signal_processing/Detection/MorphologicalFunctions1D.h"
+#include "icarus_signal_processing/Detection/MorphologicalFunctions2D.h"
 #include "ICARUSSigProcDefs.h"
 
 namespace icarus_signal_processing {
