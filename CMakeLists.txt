@@ -13,10 +13,9 @@
 # ======================================================================
 
 
-# use cmake 3.11 or later
-cmake_minimum_required (VERSION 3.11)
+cmake_minimum_required (VERSION 3.12...3.18 FATAL_ERROR)
 
-project(icarus_signal_processing)
+project(icarus_signal_processing LANGUAGES CXX)
 
 # cetbuildtools contains our cmake modules
 find_package(cetbuildtools REQUIRED)
@@ -43,7 +42,6 @@ cet_report_compiler_flags()
 find_ups_product( larsoft )
 find_ups_product( nutools )
 find_ups_product( art )
-find_ups_product( cetbuildtools ) # LIBRARY_OUTPUT_DIRECTORY, etc.
 
 # macros for dictionary and simple_plugin
 include(ArtDictionary)
