@@ -33,22 +33,20 @@ flcdir  product_dir     fcl
 
 product          version
 fftw            v3_3_8a
-root            v6_18_04d
+root            v6_22_06a
 
-cetbuildtools	v7_15_01	-	only_for_build
+cetbuildtools	v7_17_01	-	only_for_build
 end_product_list
 
 # We now define allowed qualifiers and the corresponding qualifiers for the depdencies.
 # Make a table by adding columns before "notes".
 qualifier	    root	       fftw   notes
-e19:py2:debug	e19:py2:debug  debug
-e19:py2:prof	e19:py2:prof   prof
-e19:debug	    e19:debug      debug
-e19:prof	    e19:prof       prof
-c7:py2:debug	c7:py2:debug   debug
-c7:py2:prof	    c7:py2:prof    prof
-c7:debug	    c7:debug       debug
-c7:prof		    c7:prof        prof
+e20:debug	    e20:p383b:debug      debug
+e20:prof	    e20:p383b:prof       prof
+e19:debug	    e19:p383b:debug      debug
+e19:prof	    e19:p383b:prof       prof
+c7:debug	    c7:p383b:debug       debug
+c7:prof		    c7:p383b:prof        prof
 end_qualifier_list
 
 # Preserve tabs and formatting in emacs and vi / vim:
