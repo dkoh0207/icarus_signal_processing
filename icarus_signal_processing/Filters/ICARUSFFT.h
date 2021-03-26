@@ -128,7 +128,7 @@ template <class T> inline void ICARUSFFT<T>::inverseFFT(FrequencyVec& frequencyV
     // Now normalize
     T normFactor = 1. / T(timeVec.size());
 
-    std::transform(timeVec.begin(),timeVec.end(),timeVec.begin(),std::bind1st(std::multiplies<T>(),normFactor));
+    std::transform(timeVec.begin(),timeVec.end(),timeVec.begin(),std::bind(std::multiplies<T>(),normFactor, std::placeholders::_1));
 
     return;
 }
