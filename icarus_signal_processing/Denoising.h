@@ -38,7 +38,7 @@ class Denoising {
 public:
   
     /// Default constructor
-    Denoising() : fMPVec(4096) {}
+    Denoising(bool outputStats=false) : fMPVec(4096), fOutputStats(outputStats) {}
 
     void removeCoherentNoise1D(ArrayFloat::iterator,
                                ArrayFloat::const_iterator,
@@ -122,6 +122,7 @@ private:
     // The code for the most probable calculation will need a std vector
     // We don't wnat to allocated/deallocate each call so have master copy here
     std::vector<int> fMPVec;
+    bool             fOutputStats;
   
 };
 }
