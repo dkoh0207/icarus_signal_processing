@@ -15,6 +15,7 @@
 #include <complex>
 #include <algorithm>
 #include <stdexcept>
+#include <functional>
 
 #include "fftw3.h"
 
