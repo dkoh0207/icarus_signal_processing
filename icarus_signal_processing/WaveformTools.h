@@ -11,7 +11,7 @@
 #ifndef IWaveformTool_H
 #define IWaveformTool_H
 
-#include "icarus_signal_processing/ICARUSSigProcDefs.h"
+#include "ICARUSSigProcDefs.h"
 
 #include <memory>
 #include <tuple>
