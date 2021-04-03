@@ -44,6 +44,7 @@ public:
    *
    *  @param fragment            The artdaq fragment to process
    */
+   virtual void operator()(const Waveform<bool>&,   Waveform<bool>&)   const = 0;
    virtual void operator()(const Waveform<short>&,  Waveform<short>&)  const = 0;
    virtual void operator()(const Waveform<float>&,  Waveform<float>&)  const = 0;
    virtual void operator()(const Waveform<double>&, Waveform<double>&) const = 0;
@@ -74,6 +75,7 @@ public:
     /**
     *  @brief Interface functions which provided templated access
     */
+    void operator()(const Waveform<bool>&,   Waveform<bool>&)   const override;
     void operator()(const Waveform<short>&,  Waveform<short>&)  const override;
     void operator()(const Waveform<float>&,  Waveform<float>&)  const override;
     void operator()(const Waveform<double>&, Waveform<double>&) const override;
@@ -107,6 +109,7 @@ public:
     /**
     *  @brief Interface functions which provided templated access
     */
+    void operator()(const Waveform<bool>&,   Waveform<bool>&)   const override;
     void operator()(const Waveform<short>&,  Waveform<short>&)  const override;
     void operator()(const Waveform<float>&,  Waveform<float>&)  const override;
     void operator()(const Waveform<double>&, Waveform<double>&) const override;
@@ -140,6 +143,7 @@ public:
     /**
     *  @brief Interface functions which provided templated access
     */
+    void operator()(const Waveform<bool>&,   Waveform<bool>&)   const override;
     void operator()(const Waveform<short>&,  Waveform<short>&)  const override;
     void operator()(const Waveform<float>&,  Waveform<float>&)  const override;
     void operator()(const Waveform<double>&, Waveform<double>&) const override;
@@ -173,6 +177,7 @@ public:
     /**
     *  @brief Interface functions which provided templated access
     */
+    void operator()(const Waveform<bool>&,   Waveform<bool>&)   const override;
     void operator()(const Waveform<short>&,  Waveform<short>&)  const override;
     void operator()(const Waveform<float>&,  Waveform<float>&)  const override;
     void operator()(const Waveform<double>&, Waveform<double>&) const override;
@@ -206,6 +211,7 @@ public:
     /**
     *  @brief Interface functions which provided templated access
     */
+    void operator()(const Waveform<bool>&,   Waveform<bool>&)   const override;
     void operator()(const Waveform<short>&,  Waveform<short>&)  const override;
     void operator()(const Waveform<float>&,  Waveform<float>&)  const override;
     void operator()(const Waveform<double>&, Waveform<double>&) const override;
@@ -239,6 +245,7 @@ public:
     /**
     *  @brief Interface functions which provided templated access
     */
+    void operator()(const Waveform<bool>&,   Waveform<bool>&)   const override;
     void operator()(const Waveform<short>&,  Waveform<short>&)  const override;
     void operator()(const Waveform<float>&,  Waveform<float>&)  const override;
     void operator()(const Waveform<double>&, Waveform<double>&) const override;
@@ -271,6 +278,7 @@ public:
     /**
     *  @brief Interface functions which provided templated access
     */
+    void operator()(const Waveform<bool>&,   Waveform<bool>&)   const override;
     void operator()(const Waveform<short>&,  Waveform<short>&)  const override;
     void operator()(const Waveform<float>&,  Waveform<float>&)  const override;
     void operator()(const Waveform<double>&, Waveform<double>&) const override;

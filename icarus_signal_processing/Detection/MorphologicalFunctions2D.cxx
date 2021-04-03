@@ -20,6 +20,20 @@ void icarus_signal_processing::Dilation2D::operator()(ArrayFloat::const_iterator
                                                       unsigned int               numChannels, 
                                                       ArrayFloat::iterator       dilation2D) const
 {
+    getDilation2D<float>(inputWaveform2D, numChannels, dilation2D);
+}
+
+void icarus_signal_processing::Dilation2D::operator()(ArrayBool::const_iterator inputWaveform2D, 
+                                                      unsigned int              numChannels, 
+                                                      ArrayBool::iterator       dilation2D) const
+{
+    getDilation2D<bool>(inputWaveform2D, numChannels, dilation2D);
+}
+
+template <typename T> void icarus_signal_processing::Dilation2D::getDilation2D(typename WaveArray<T>::const_iterator inputWaveform2D, 
+                                                                               const unsigned int                    numChannels, 
+                                                                               typename WaveArray<T>::iterator       dilation2D) const
+{
     /*
       Module for 2D Dilation Filter.
 
@@ -58,6 +72,20 @@ void icarus_signal_processing::Erosion2D::operator()(ArrayFloat::const_iterator 
                                                      unsigned int               numChannels, 
                                                      ArrayFloat::iterator       erosion2D) const
 {
+    getErosion2D<float>(inputWaveform2D, numChannels, erosion2D);
+}
+
+void icarus_signal_processing::Erosion2D::operator()(ArrayBool::const_iterator inputWaveform2D,
+                                                     unsigned int              numChannels, 
+                                                     ArrayBool::iterator       erosion2D) const
+{
+    getErosion2D<bool>(inputWaveform2D, numChannels, erosion2D);
+}
+
+template <typename T> void icarus_signal_processing::Erosion2D::getErosion2D(typename WaveArray<T>::const_iterator inputWaveform2D, 
+                                                                             const unsigned int                    numChannels, 
+                                                                             typename WaveArray<T>::iterator       erosion2D) const
+{
     size_t nTicks = (*inputWaveform2D).size();
 
     for (size_t i=0; i<numChannels; ++i) erosion2D[i].resize(nTicks);
@@ -81,16 +109,30 @@ void icarus_signal_processing::Erosion2D::operator()(ArrayFloat::const_iterator 
     return;
 }
 
+void icarus_signal_processing::Gradient2D::operator()(ArrayBool::const_iterator inputWaveform2D,
+                                                     unsigned int               numChannels, 
+                                                     ArrayBool::iterator        gradient2D) const
+{
+    getGradient2D<bool>(inputWaveform2D, numChannels, gradient2D);
+}
+
 void icarus_signal_processing::Gradient2D::operator()(ArrayFloat::const_iterator inputWaveform2D,
                                                      unsigned int                numChannels, 
                                                      ArrayFloat::iterator        gradient2D) const
+{
+    getGradient2D<float>(inputWaveform2D, numChannels, gradient2D);
+}
+
+template <typename T> void icarus_signal_processing::Gradient2D::getGradient2D(typename WaveArray<T>::const_iterator inputWaveform2D, 
+                                                                               const unsigned int                    numChannels, 
+                                                                               typename WaveArray<T>::iterator       gradient2D) const
 {
     size_t nTicks = (*inputWaveform2D).size();
 
     for (size_t i=0; i<numChannels; ++i) gradient2D[i].resize(nTicks);
 
-    ArrayFloat dilation2D(numChannels);
-    ArrayFloat erosion2D(numChannels);
+    WaveArray<T> dilation2D(numChannels);
+    WaveArray<T> erosion2D(numChannels);
 
     icarus_signal_processing::Dilation2D(fStructuringElementX, fStructuringElementY)(inputWaveform2D, numChannels, dilation2D.begin());
     icarus_signal_processing::Erosion2D (fStructuringElementX, fStructuringElementY)(inputWaveform2D, numChannels, erosion2D.begin());
@@ -104,10 +146,25 @@ void icarus_signal_processing::Gradient2D::operator()(ArrayFloat::const_iterator
     return;
 }
 
+void icarus_signal_processing::Average2D::operator()(ArrayBool::const_iterator inputWaveform2D,
+                                                     unsigned int               numChannels, 
+                                                     ArrayBool::iterator        averageVec) const
+{
+    getAverage2D<bool>(inputWaveform2D, numChannels, averageVec);
+}
+
 void icarus_signal_processing::Average2D::operator()(ArrayFloat::const_iterator inputWaveform2D,
                                                      unsigned int                numChannels, 
                                                      ArrayFloat::iterator        averageVec) const
 {
+    getAverage2D<float>(inputWaveform2D, numChannels, averageVec);
+}
+
+template <typename T> void icarus_signal_processing::Average2D::getAverage2D(typename WaveArray<T>::const_iterator inputWaveform2D, 
+                                                                             const unsigned int                    numChannels, 
+                                                                             typename WaveArray<T>::iterator       average2D) const
+{
+
 //    // Set the window size
 //    int halfWindowSize(fStructuringElement/2);
 //    // Initialize min and max elements
@@ -145,9 +202,23 @@ void icarus_signal_processing::Average2D::operator()(ArrayFloat::const_iterator 
     return;
 }
 
+void icarus_signal_processing::Median2D::operator()(ArrayBool::const_iterator inputWaveform2D,
+                                                    unsigned int              numChannels, 
+                                                    ArrayBool::iterator       medianVec) const
+{
+    getMedian2D<bool>(inputWaveform2D, numChannels, medianVec);
+}
+
 void icarus_signal_processing::Median2D::operator()(ArrayFloat::const_iterator inputWaveform2D,
                                                     unsigned int               numChannels, 
                                                     ArrayFloat::iterator       medianVec) const
+{
+    getMedian2D<float>(inputWaveform2D, numChannels, medianVec);
+}
+
+template <typename T> void icarus_signal_processing::Median2D::getMedian2D(typename WaveArray<T>::const_iterator inputWaveform2D, 
+                                                                           const unsigned int                    numChannels, 
+                                                                           typename WaveArray<T>::iterator       median2D) const
 {
     int halfWindowX = fStructuringElementX / 2;
     int halfWindowY = fStructuringElementY / 2;

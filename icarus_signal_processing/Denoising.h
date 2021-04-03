@@ -33,79 +33,22 @@ namespace icarus_signal_processing {
    User defined class Denoising ... these comments are used to generate
    doxygen documentation!
 */
-class Denoising {
-  
+class Denoising 
+{
 public:
-  
     /// Default constructor
-    Denoising(bool outputStats=false) : fMPVec(4096), fOutputStats(outputStats) {}
-
-    void removeCoherentNoise1D(ArrayFloat::iterator,
-                               ArrayFloat::const_iterator,
-                               ArrayFloat::iterator,
-                               ArrayFloat::iterator,
-                               ArrayBool::iterator,
-                               ArrayBool::iterator,
-                               ArrayFloat::iterator,
-                               FilterFunctionVec::const_iterator,
-                               VectorFloat::const_iterator,
-                               const unsigned int,
-                               const unsigned int,
-                               const unsigned int 
-    );
-
-    void removeCoherentNoise1D_Ave(ArrayFloat::iterator,
-                                   ArrayFloat::const_iterator,
-                                   ArrayFloat::iterator,
-                                   ArrayFloat::iterator,
-                                   ArrayBool::iterator,
-                                   ArrayBool::iterator,
-                                   ArrayFloat::iterator,
-                                   FilterFunctionVec::const_iterator,
-                                   VectorFloat::const_iterator,
-                                   const unsigned int,
-                                   const unsigned int,
-                                   const unsigned int 
-    );    
-
-    void removeCoherentNoise2D(ArrayFloat::iterator,
-                               ArrayFloat::const_iterator,
-                               ArrayFloat::iterator,
-                               ArrayFloat::iterator,
-                               ArrayBool::iterator,
-                               ArrayBool::iterator,
-                               ArrayFloat::iterator,
-                               const IMorphologicalFunctions2D*,
-                               VectorFloat::const_iterator,
-                               const unsigned int,
-                               const unsigned int,
-                               const unsigned int 
-    );
-
-    void removeCoherentNoiseHough(ArrayFloat::iterator,
-                                  ArrayFloat::const_iterator,
-                                  ArrayFloat::iterator,
-                                  ArrayFloat::iterator,
-                                  ArrayBool::iterator,
-                                  ArrayBool::iterator,
-                                  ArrayFloat::iterator,
-                                  const IMorphologicalFunctions2D*,
-                                  VectorFloat::const_iterator,
-                                  const unsigned int,
-                                  const unsigned int,
-                                  const unsigned int 
-    );
+    Denoising(bool outputStats) : fMPVec(4096), fOutputStats(outputStats) {}
 
     /// Default destructor
     ~Denoising(){}
 
-private:
     void getSelectVals(ArrayFloat::const_iterator,
                        ArrayBool::iterator,
                        ArrayBool::iterator,
-                       VectorFloat::const_iterator,
+                       const VectorFloat&,
                        const unsigned int,
-                       const unsigned int);
+                       const unsigned int,
+                       const unsigned int) const;
 
     void removeCoherentNoise(ArrayFloat::iterator,
                              ArrayFloat::const_iterator,
@@ -113,18 +56,170 @@ private:
                              ArrayBool::iterator,
                              ArrayFloat::iterator,
                              const unsigned int,
-                             const unsigned int 
-    );
+                             const unsigned int ) const;
     
     float getMedian(      std::vector<float>&, const unsigned int) const;
-    float getMostProbable(std::vector<float>&, const unsigned int);
-    
+    float getMostProbable(std::vector<float>&, const unsigned int) const;
+
+private:
     // The code for the most probable calculation will need a std vector
     // We don't wnat to allocated/deallocate each call so have master copy here
-    std::vector<int> fMPVec;
-    bool             fOutputStats;
+    mutable std::vector<int> fMPVec;
+    bool                     fOutputStats;
   
 };
+
+class IDenoiser1D
+{
+public:
+   /**
+   *  @brief  Virtual Destructor
+   */
+   virtual ~IDenoiser1D() noexcept = default;
+ 
+   /**
+   *  @brief Interface to the 1D denoising
+   *
+   *  @param Waveform  The waveform to process
+   */
+    virtual void operator()(ArrayFloat::iterator,
+                            ArrayFloat::const_iterator,
+                            ArrayFloat::iterator,
+                            ArrayFloat::iterator,
+                            ArrayBool::iterator,
+                            ArrayBool::iterator,
+                            ArrayFloat::iterator,
+                            FilterFunctionVec::const_iterator,
+                            const VectorFloat&,
+                            const unsigned int,
+                            const unsigned int,
+                            const unsigned int ) const = 0;
+};
+
+class IDenoiser2D
+{
+public:
+   /**
+   *  @brief  Virtual Destructor
+   */
+   virtual ~IDenoiser2D() noexcept = default;
+ 
+   /**
+   *  @brief Interface to the 1D denoising
+   *
+   *  @param Waveform  The waveform to process
+   */
+    virtual void operator()(ArrayFloat::iterator,
+                            ArrayFloat::const_iterator,
+                            ArrayFloat::iterator,
+                            ArrayFloat::iterator,
+                            ArrayBool::iterator,
+                            ArrayBool::iterator,
+                            ArrayFloat::iterator,
+                            const unsigned int ) const = 0;
+};
+
+class Denoiser1D : virtual public IDenoiser1D, public Denoising {
+public:
+    /// Default constructor
+    Denoiser1D(bool outputStats=false) : Denoising(outputStats), fOutputStats(outputStats) {}
+
+    void operator()(ArrayFloat::iterator,
+                    ArrayFloat::const_iterator,
+                    ArrayFloat::iterator,
+                    ArrayFloat::iterator,
+                    ArrayBool::iterator,
+                    ArrayBool::iterator,
+                    ArrayFloat::iterator,
+                    FilterFunctionVec::const_iterator,
+                    const VectorFloat&,
+                    const unsigned int,
+                    const unsigned int,
+                    const unsigned int ) const override;
+
+private:
+    bool fOutputStats;
+
+};
+
+class Denoiser1D_Ave : virtual public IDenoiser1D, public Denoising {
+public:
+    /// Default constructor
+    Denoiser1D_Ave(bool outputStats=false) : Denoising(outputStats), fOutputStats(outputStats) {}
+
+    void operator()(ArrayFloat::iterator,
+                    ArrayFloat::const_iterator,
+                    ArrayFloat::iterator,
+                    ArrayFloat::iterator,
+                    ArrayBool::iterator,
+                    ArrayBool::iterator,
+                    ArrayFloat::iterator,
+                    FilterFunctionVec::const_iterator,
+                    const VectorFloat&,
+                    const unsigned int,
+                    const unsigned int,
+                    const unsigned int ) const override;
+
+private:
+    bool fOutputStats;
+
+};
+
+class Denoiser2D : virtual public IDenoiser2D, public Denoising {
+public:
+    /// Default constructor
+    Denoiser2D(const IMorphologicalFunctions2D*,         // Filter function to apply for finding protected regions
+               const VectorFloat&,                       // Threshold to apply
+               unsigned int,                             // Coherent noise grouping (# of channels)
+               unsigned int,                             // Window for morphological filter
+               bool outputStats=false);                  // If on will activate some timing statistics
+
+    void operator()(ArrayFloat::iterator,                // Output coherent noise corrected waveforms
+                    ArrayFloat::const_iterator,          // Input pedestal subtracted waveforms
+                    ArrayFloat::iterator,                // Output morphological waveforms
+                    ArrayFloat::iterator,                // Output rms of the coherent noise waveforms
+                    ArrayBool::iterator,                 // Selected values
+                    ArrayBool::iterator,                 // ROI's used in coherent noise subtractio  n
+                    ArrayFloat::iterator,                // Medians used in coherent noise correction
+                    const unsigned int)                  // Number of channels in the input image
+                    const override;
+
+private:
+    const IMorphologicalFunctions2D* fFilterFunction;
+    const VectorFloat&               fThresholdVec;
+    unsigned int                     fCoherentNoiseGrouping;
+    unsigned int                     fMorphologicalWindow;
+    bool                             fOutputStats;
+};
+
+class Denoiser2D_Hough : virtual public IDenoiser2D, public Denoising {
+public:
+    /// Default constructor
+    Denoiser2D_Hough(const IMorphologicalFunctions2D*,    // Filter function to apply for finding protected regions
+                     const VectorFloat&,                  // Thresholds to apply
+                     unsigned int,                        // Coherent noise grouping (# of channels)
+                     unsigned int,                        // Window for morphological filter
+                     bool outputStats=false);             // If on will activate some timing statistics
+
+    void operator()(ArrayFloat::iterator,
+                    ArrayFloat::const_iterator,
+                    ArrayFloat::iterator,
+                    ArrayFloat::iterator,
+                    ArrayBool::iterator,
+                    ArrayBool::iterator,
+                    ArrayFloat::iterator,
+                    const unsigned int ) const override;
+
+private:
+    const IMorphologicalFunctions2D* fFilterFunction;
+    const VectorFloat&               fThresholdVec;
+    unsigned int                     fCoherentNoiseGrouping;
+    unsigned int                     fMorphologicalWindow;
+    bool fOutputStats;
+
+};
+
+
 }
 
 #endif

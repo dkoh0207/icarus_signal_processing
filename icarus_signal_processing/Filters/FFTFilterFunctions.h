@@ -161,10 +161,6 @@ private:
 /**
 * \class No Filter 
 *  
- 
- 
- 
- 
 * \ingroup icarus_signal_processing
 * 
 * \brief This does not filtering (but allows to be included in a list of filter functions)
@@ -189,6 +185,82 @@ public:
     void operator()(Waveform<double>&) const override {return;}
 
 private:
+};
+
+/**
+* \class low pass Butterworth filter
+*  
+* \ingroup icarus_signal_processing
+* 
+* \brief Implements a low pass Butterworth filter
+*/
+class LowPassButterworthFilter : virtual public IFFTFilterFunction
+{
+public:
+    /**
+     *  @brief  Constructor
+     */
+    explicit LowPassButterworthFilter(unsigned int, unsigned int, unsigned int);
+
+    /**
+     *  @brief  Destructor
+     */
+    ~LowPassButterworthFilter();
+ 
+    /**
+    *  @brief Interface functions which provided templated access
+    */
+    void operator()(Waveform<float>&)  const override;
+    void operator()(Waveform<double>&) const override;
+
+private:
+    void lowPassButterworthFilter(Waveform<float>&) const;
+
+    unsigned int                     fThreshold;
+    unsigned int                     fOrder;
+    unsigned int                     fFrequencySize;
+    std::vector<std::complex<float>> fFilterVec;
+
+    // Keep track of the FFT 
+    std::unique_ptr<icarus_signal_processing::ICARUSFFT<float>> fFFT; ///< Object to handle thread safe FFT
+};
+
+/**
+* \class high pass Butterworth filter
+*  
+* \ingroup icarus_signal_processing
+* 
+* \brief Implements a low pass Butterworth filter
+*/
+class HighPassButterworthFilter : virtual public IFFTFilterFunction
+{
+public:
+    /**
+     *  @brief  Constructor
+     */
+    explicit HighPassButterworthFilter(unsigned int, unsigned int, unsigned int);
+
+    /**
+     *  @brief  Destructor
+     */
+    ~HighPassButterworthFilter();
+ 
+    /**
+    *  @brief Interface functions which provided templated access
+    */
+    void operator()(Waveform<float>&)  const override;
+    void operator()(Waveform<double>&) const override;
+
+private:
+    void highPassButterworthFilter(Waveform<float>&) const;
+
+    unsigned int                     fThreshold;
+    unsigned int                     fOrder;
+    unsigned int                     fFrequencySize;
+    std::vector<std::complex<float>> fFilterVec;
+
+    // Keep track of the FFT 
+    std::unique_ptr<icarus_signal_processing::ICARUSFFT<float>> fFFT; ///< Object to handle thread safe FFT
 };
 
 }

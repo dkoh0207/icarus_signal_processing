@@ -14,6 +14,76 @@
 namespace icarus_signal_processing 
 {
 
+void Dilation1D::operator()(const Waveform<bool>& inputWaveform,  
+                            Waveform<bool>&       dilationVec)  const
+{
+     /*
+      Module for 1D Dilation Filter - special handling for bool arrays
+
+      INPUTS:
+      - waveform: 1D Pedestal Corrected Waveform.
+      - structuringElement: Size of moving window
+  
+      MODIFIES:
+      - dilationVec: Returned Dilation Vector.
+    */
+
+    if (dilationVec.size() != inputWaveform.size())
+    {
+        std::cout << "Dilation1D: output dilation vector not same size as input waveform array" << std::endl;
+        return;
+    }
+
+    size_t N = inputWaveform.size();
+
+    if (N <= fStructuringElement) 
+    {
+        std::cout << "Dilation1D: Input array size " << N << " must be greater than structuring element size " << fStructuringElement << std::endl;
+        return;
+    }
+
+    size_t bufferSize  = N + 2 * (fStructuringElement/2) + (fStructuringElement - (N % fStructuringElement));
+    size_t windowSize  = fStructuringElement/2;
+    size_t paddingSize = fStructuringElement - (N % fStructuringElement);
+
+    std::vector<bool> suffixArr(bufferSize);
+    std::vector<bool> prefixArr(bufferSize);
+
+    // Padding Operations on Buffers
+    for (size_t i=0; i<windowSize; ++i) {
+        suffixArr[i] = false;
+        prefixArr[i] = false;
+    }
+
+    for (size_t i=N+windowSize; i<bufferSize; ++i) {
+        suffixArr[i] = false;
+        prefixArr[i] = false;
+    }
+
+    // Compute Prefix and Suffix Buffers
+    for (size_t i=0; i<N+paddingSize; ++i) {
+        if (i % fStructuringElement == 0) prefixArr[i+windowSize] = inputWaveform[i];
+        else                              prefixArr[i+windowSize] = prefixArr[i+windowSize-1] || inputWaveform[i];
+    }
+
+    for (size_t i=N+paddingSize; i!=0; --i) {
+        if      (i > N)                        continue;  // Compensate for divisibility padding (must be -inf)
+        else if (i % fStructuringElement == 0) suffixArr[i+windowSize-1] = inputWaveform[i-1];
+        else                                   suffixArr[i+windowSize-1] = suffixArr[i+windowSize] || inputWaveform[i-1];
+    }
+
+    int prefixIndex = 0;
+    int suffixIndex = 0;
+
+    for (size_t i=0; i<N; ++i) {
+        prefixIndex    = i + 2 * windowSize;
+        suffixIndex    = i;
+        dilationVec[i] = prefixArr[prefixIndex] || suffixArr[suffixIndex];
+    }
+
+    return;
+}
+
 void Dilation1D::operator()(const Waveform<short>& waveformVec,  
                             Waveform<short>&       dilationVec)  const
 {
@@ -97,11 +167,68 @@ template <typename T> void icarus_signal_processing::Dilation1D::getDilation(con
     for (size_t i=0; i<N; ++i) {
         prefixIndex    = i + 2 * windowSize;
         suffixIndex    = i;
-        dilationVec[i] = std::max(prefixArr[prefixIndex],
-
-        suffixArr[suffixIndex]);
+        dilationVec[i] = std::max(prefixArr[prefixIndex],suffixArr[suffixIndex]);
     }
 
+
+    return;
+}
+
+void Erosion1D::operator()(const Waveform<bool>& inputWaveform,  
+                           Waveform<bool>&       erosionVec)  const
+{
+    if (erosionVec.size() != inputWaveform.size())
+    {
+        std::cout << "Erosion1D: output dilation vector not same size as input waveform array" << std::endl;
+        return;
+    }
+
+    size_t N = inputWaveform.size();
+
+    if (N <= fStructuringElement) 
+    {
+        std::cout << "Dilation1D: Input array size " << N << " must be greater than structuring element size " << fStructuringElement << std::endl;
+        return;
+    }
+
+    size_t bufferSize  = N + 2 * (fStructuringElement/2) + (fStructuringElement - (N % fStructuringElement));
+    size_t windowSize  = fStructuringElement/2;
+    size_t paddingSize = fStructuringElement - (N % fStructuringElement);
+
+    std::vector<bool> suffixArr(bufferSize);
+    std::vector<bool> prefixArr(bufferSize);
+
+    // Padding Operations on Buffers
+    for (size_t i=0; i<windowSize; ++i) {
+        suffixArr[i] = false;
+        prefixArr[i] = false;
+    }
+
+    for (size_t i=N+windowSize; i<bufferSize; ++i) {
+        suffixArr[i] = false;
+        prefixArr[i] = false;
+    }
+
+    // Compute Prefix and Suffix Buffers
+    for (size_t i=0; i<N+paddingSize; ++i) {
+        if (i % fStructuringElement == 0) prefixArr[i+windowSize] = inputWaveform[i];
+        else                              prefixArr[i+windowSize] = prefixArr[i+windowSize-1] && inputWaveform[i];
+    }
+
+    for (size_t i=N+paddingSize; i!=0; --i) {
+        if (i > N)                             continue; // Compensate for divisibility padding (must be -inf)
+        else if (i % fStructuringElement == 0) suffixArr[i+windowSize-1] = inputWaveform[i-1];
+        else                                   suffixArr[i+windowSize-1] = suffixArr[i+windowSize] && inputWaveform[i-1];
+    }
+
+    int prefixIndex = 0;
+    int suffixIndex = 0;
+
+    for (size_t i=0; i<N; ++i) {
+        prefixIndex = i + 2 * windowSize;
+        suffixIndex = i;
+        erosionVec[i] = prefixArr[prefixIndex] && suffixArr[suffixIndex];
+    }
 
     return;
 }
@@ -178,11 +305,16 @@ template <typename T> void icarus_signal_processing::Erosion1D::getErosion(const
     for (size_t i=0; i<N; ++i) {
         prefixIndex = i + 2 * windowSize;
         suffixIndex = i;
-        erosionVec[i] = std::min(prefixArr[prefixIndex],
-        suffixArr[suffixIndex]);
+        erosionVec[i] = std::min(prefixArr[prefixIndex],suffixArr[suffixIndex]);
     }
 
     return;
+}
+
+void Gradient1D::operator()(const Waveform<bool>& waveformVec,  
+                            Waveform<bool>&       gradientVec)  const
+{
+    getGradient<bool>(waveformVec, gradientVec);
 }
 
 void Gradient1D::operator()(const Waveform<short>& waveformVec,  
@@ -230,6 +362,16 @@ template <typename T> void icarus_signal_processing::Gradient1D::getGradient(con
     erosion1D(inputWaveform, erosionVec);
 
     for (size_t i=0; i<N; ++i) gradientVec[i] = dilationVec[i] - erosionVec[i];
+
+    return;
+}
+
+void Average1D::operator()(const Waveform<bool>& waveformVec,  
+                           Waveform<bool>&       averageVec)  const
+{
+//    std::fill(averageVec.begin(),averageVec.end(),false);
+
+    std::cout << "**** AVERAGE1D does not support bool types *****" << std::endl;
 
     return;
 }
@@ -290,6 +432,12 @@ template <typename T> void icarus_signal_processing::Average1D::getAverage(const
         *avgItr++ = 0.5 * (*maxElementItr + *minElementItr);
     }
     return;
+}
+
+void Median1D::operator()(const Waveform<bool>& waveformVec,  
+                          Waveform<bool>&       medianVec)  const
+{
+    getMedian<bool>(waveformVec, medianVec);
 }
 
 void Median1D::operator()(const Waveform<short>& waveformVec,  
