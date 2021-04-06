@@ -226,8 +226,8 @@ void LowPassButterworthFilter::lowPassButterworthFilter(Waveform<float>& inputWa
 }
 
 HighPassButterworthFilter::HighPassButterworthFilter(unsigned int threshold,
-                                                   unsigned int order,
-                                                   unsigned int size) :
+                                                     unsigned int order,
+                                                     unsigned int size) :
                 fThreshold(threshold),
                 fOrder(order),
                 fFrequencySize(size)
