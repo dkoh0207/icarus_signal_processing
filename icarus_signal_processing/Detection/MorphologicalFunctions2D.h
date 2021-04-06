@@ -255,7 +255,7 @@ public:
     */
     void operator()(ArrayFloat::const_iterator waveformIn,  const unsigned int nChannels, ArrayFloat::iterator opening)  const override
     {
-        ArrayFloat temp;
+        ArrayFloat temp(nChannels);
 
         Erosion2D (fStructuringElementX,fStructuringElementY)(waveformIn, nChannels, temp.begin());
         Dilation2D(fStructuringElementX,fStructuringElementY)(temp.begin(),       nChannels, opening);
@@ -263,7 +263,7 @@ public:
 
     void operator()(ArrayBool::const_iterator waveformIn, const unsigned int nChannels, ArrayBool::iterator opening) const override
     {
-        ArrayBool temp;
+        ArrayBool temp(nChannels);
 
         Erosion2D (fStructuringElementX,fStructuringElementY)(waveformIn, nChannels, temp.begin());
         Dilation2D(fStructuringElementX,fStructuringElementY)(temp.begin(),       nChannels, opening);
@@ -302,7 +302,7 @@ public:
     */
     void operator()(ArrayFloat::const_iterator waveformIn, const unsigned int nChannels, ArrayFloat::iterator closing)  const override
     {
-        ArrayFloat temp;
+        ArrayFloat temp(nChannels);
 
         Dilation2D(fStructuringElementX,fStructuringElementY)(waveformIn, nChannels, temp.begin());
         Erosion2D( fStructuringElementX,fStructuringElementY)(temp.begin(),       nChannels, closing);
@@ -310,7 +310,7 @@ public:
 
     void operator()(ArrayBool::const_iterator waveformIn, const unsigned int nChannels, ArrayBool::iterator closing)  const override
     {
-        ArrayBool temp;
+        ArrayBool temp(nChannels);
 
         Dilation2D(fStructuringElementX,fStructuringElementY)(waveformIn, nChannels, temp.begin());
         Erosion2D( fStructuringElementX,fStructuringElementY)(temp.begin(),       nChannels, closing);
