@@ -349,13 +349,11 @@ void icarus_signal_processing::ROICannyFilter::operator()(const IROIFinder2D::Ar
                          fSigma_x, fSigma_y, fSigma_r,
                          fLowThreshold, fHighThreshold, 'e');
 
-    std::cout << "==> Final Step: get closing" << std::endl;
+    std::cout << "==> Final Step: get closing, numChannels: " << numChannels << ", rois: " << rois.size() << ", output: " << outputROI.size() << std::endl;
 
     Closing2D(fBinary_Closing_SX,fBinary_Closing_SY)(rois.begin(), numChannels, outputROI.begin());
 
-    // 6. Expand predicted edge regions with binary closing
-//    icarus_signal_processing::Morph2DFast morph2D;
-//    morph2D.getClosing(rois, fBinary_Closing_SX, fBinary_Closing_SY, outputROI);
+    std::cout << "==> DONE!! returning to calling module..." << std::endl;
 
     return;
 }
