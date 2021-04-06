@@ -89,7 +89,7 @@ public:
         IROIFinder2D::Array2D<float>&       waveLessCoherent,
         IROIFinder2D::Array2D<float>&       medianVals,
         IROIFinder2D::Array2D<float>&       coherentRMS,
-         IROIFinder2D::Array2D<float>&      morphedWaveform2D,
+        IROIFinder2D::Array2D<float>&       morphedWaveform2D,
         IROIFinder2D::Array2D<float>&       finalErosion2D) const override;
 
 private:
