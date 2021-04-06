@@ -588,8 +588,12 @@ void icarus_signal_processing::Denoising::removeCoherentNoise(ArrayFloat::iterat
             }
                 
             // Add correction
-            correctedMediansItr[j][i] = median;
-            for (auto k=group_start; k<group_end; ++k) waveLessCoherentItr[k][i] = filteredWaveformsItr[k][i] - median;
+//            correctedMediansItr[j][i] = median;
+            for (auto k=group_start; k<group_end; ++k) 
+            {
+                correctedMediansItr[k][i] = median;
+                waveLessCoherentItr[k][i] = filteredWaveformsItr[k][i] - median;
+            }
         }
     }
 
