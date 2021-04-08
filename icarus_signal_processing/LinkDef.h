@@ -12,7 +12,6 @@
 #pragma link C++ class icarus_signal_processing::Denoising+;
 #pragma link C++ class icarus_signal_processing::FindROI2D+;
 #pragma link C++ class ICARUSSigProcDefs+;
-#pragma link C++ class icarus_signal_processing::WaveformTools+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
 

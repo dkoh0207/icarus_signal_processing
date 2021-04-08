@@ -83,6 +83,7 @@ void icarus_signal_processing::Denoiser1D::operator()(ArrayFloat::iterator      
                                                       const VectorFloat&                thresholdVec,
                                                       const unsigned int                numChannels,
                                                       const unsigned int                grouping,
+                                                      const unsigned int                groupingOffset,
                                                       const unsigned int                window) const
 {
 //    auto nTicks  = filteredWaveformsItr->size();
@@ -113,7 +114,7 @@ void icarus_signal_processing::Denoiser1D::operator()(ArrayFloat::iterator      
     std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point noiseStart = selStop;
 
-    removeCoherentNoise(waveLessCoherentItr, filteredWaveformsItr, intrinsicRMSItr, selectValsItr, correctedMediansItr, numChannels, grouping);
+    removeCoherentNoise(waveLessCoherentItr, filteredWaveformsItr, intrinsicRMSItr, selectValsItr, correctedMediansItr, numChannels, grouping, groupingOffset);
 
     std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point funcStopTime = std::chrono::high_resolution_clock::now();
@@ -406,7 +407,7 @@ void icarus_signal_processing::Denoiser2D::operator()(ArrayFloat::iterator      
     std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point noiseStart = selStop;
 
-    removeCoherentNoise(waveLessCoherentItr, filteredWaveformsItr, intrinsicRMSItr, selectValsItr, correctedMediansItr, numChannels, fCoherentNoiseGrouping);
+    removeCoherentNoise(waveLessCoherentItr, filteredWaveformsItr, intrinsicRMSItr, selectValsItr, correctedMediansItr, numChannels, fCoherentNoiseGrouping, fCoherentNoiseGroupingOffset);
 
     std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point funcStopTime = std::chrono::high_resolution_clock::now();
@@ -461,12 +462,14 @@ void icarus_signal_processing::Denoiser2D::operator()(ArrayFloat::iterator      
 icarus_signal_processing::Denoiser2D_Hough::Denoiser2D_Hough(const IMorphologicalFunctions2D* filterFunction,   // Filter function to apply for finding protected regions
                                                              const VectorFloat&               thresholdVec,     // Threshold to apply
                                                              unsigned int                     coherentGrouping, // Coherent noise grouping (# of channels)
+                                                             unsigned int                     groupingOffset,   // The collection and middle induction planes are shifted by 23 channels in the beginning.
                                                              unsigned int                     morphWindow,      // Window for morphological filter
                                                              bool                             outputStats)      // If on will activate some timing statistics
             : Denoising(outputStats), 
               fFilterFunction(filterFunction),
               fThresholdVec(thresholdVec),
               fCoherentNoiseGrouping(coherentGrouping),
+              fCoherentNoiseGroupingOffset(groupingOffset),
               fMorphologicalWindow(morphWindow),
               fOutputStats(outputStats)
 {}
@@ -508,7 +511,7 @@ void icarus_signal_processing::Denoiser2D_Hough::operator()(ArrayFloat::iterator
     std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point noiseStart = selStop;
 
-    removeCoherentNoise(waveLessCoherentItr, filteredWaveformsItr, intrinsicRMSItr, selectValsItr, correctedMediansItr, numChannels, fCoherentNoiseGrouping);
+    removeCoherentNoise(waveLessCoherentItr, filteredWaveformsItr, intrinsicRMSItr, selectValsItr, correctedMediansItr, numChannels, fCoherentNoiseGrouping, fCoherentNoiseGrouping);
 
     std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point funcStopTime = std::chrono::high_resolution_clock::now();
@@ -533,10 +536,11 @@ void icarus_signal_processing::Denoising::removeCoherentNoise(ArrayFloat::iterat
                                                               ArrayBool::iterator        selectValsItr,
                                                               ArrayFloat::iterator       correctedMediansItr,
                                                               const unsigned int         numChannels,
-                                                              const unsigned int         grouping) const
+                                                              const unsigned int         grouping,
+                                                              const unsigned int         groupingOffset) const
 {
     auto nTicks  = filteredWaveformsItr->size();
-    auto nGroups = numChannels / grouping;
+    size_t nGroups = ((int) numChannels - (int) groupingOffset) / grouping;
 
     // get an instance of the waveform tools
     icarus_signal_processing::WaveformTools<float> waveformTools;
@@ -594,6 +598,55 @@ void icarus_signal_processing::Denoising::removeCoherentNoise(ArrayFloat::iterat
                 correctedMediansItr[k][i] = median;
                 waveLessCoherentItr[k][i] = filteredWaveformsItr[k][i] - median;
             }
+        }
+    }
+
+    // Compensate for offset in channel groupings
+    if (groupingOffset > 0) {
+        for (size_t i=0; i<nTicks; ++i) {
+
+            size_t idxV(0);
+
+            for (size_t c=0; c<groupingOffset; ++c)
+            {
+                if (!selectValsItr[c][i]) v[idxV++] = filteredWaveformsItr[c][i];
+            }
+
+            float median(0.);
+
+            // If we have values which are not "protected" then compute the median
+            if (idxV > 0)
+            {
+                std::fill(v.begin()+idxV,v.end(),v.back());
+
+                if (idxV > 3) waveformTools.triangleSmooth(v,v);
+
+                median   = getMedian(v,idxV);
+
+                // Try to improve by throwing out the values at the extremes
+                std::transform(v.begin(),v.begin()+idxV,v.begin(),std::bind(std::minus<float>(),std::placeholders::_1,median));
+                float rms = std::sqrt(std::inner_product(v.begin(),v.begin()+idxV,v.begin(),0.) / float(v.size()));
+
+                std::sort(v.begin(),v.begin()+idxV,[](const auto& left,const auto& right){return std::abs(left) < std::abs(right);});
+
+                while(idxV > 0)
+                {
+                    if (std::abs(v[idxV-1]) < 2.0 * rms) break;
+                    idxV--;
+                }
+
+                // Try to get the improved value for the median. Note we have to add to the previously calculated quantity since it
+                // was subtracted from the vector of values already. 
+//                if (idxV > 5) median += std::accumulate(v.begin(),v.begin()+idxV,0.) / float(idxV);
+                if (idxV > 5) median += getMedian(v,idxV);
+            }
+
+            for (auto k=0; k<groupingOffset; ++k) 
+            {
+                correctedMediansItr[k][i] = median;
+                waveLessCoherentItr[k][i] = filteredWaveformsItr[k][i] - median;
+            }
+
         }
     }
 

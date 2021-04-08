@@ -73,8 +73,8 @@ public:
                    // float NOISE_VARIANCE = 20.0;
                    const unsigned int ADFILTER_SX,
                    const unsigned int ADFILTER_SY,
-                   const unsigned int BINARY_CLOSING_SX,
-                   const unsigned int BINARY_CLOSING_SY,
+                   const unsigned int BINARY_DILATION_SX,
+                   const unsigned int BINARY_DILATION_SY,
                    const float        GLOBAL_THRESHOLDING_FACTOR);
 
     /**
@@ -109,8 +109,8 @@ private:
 
     const unsigned int fADFilter_SX;
     const unsigned int fADFilter_SY;
-    const unsigned int fBinary_Closing_SX; 
-    const unsigned int fBinary_Closing_SY;
+    const unsigned int fBinary_Dilation_SX; 
+    const unsigned int fBinary_Dilation_SY;
     const float        fGlobal_Thresholding_Factor;
 };
 
@@ -192,8 +192,8 @@ public:
                    const float        sigma_r = 30.0, 
                    const float        lowThreshold = 3.0,
                    const float        highThreshold = 15.0,
-                   const unsigned int BINARY_CLOSING_SX = 13,
-                   const unsigned int BINARY_CLOSING_SY = 13);
+                   const unsigned int BINARY_DILATION_SX = 13,
+                   const unsigned int BINARY_DILATION_SY = 13);
 
     /**
      *  @brief  Destructor
@@ -224,8 +224,8 @@ private:
     const float                      fSigma_r;
     const float                      fLowThreshold;
     const float                      fHighThreshold;
-    const unsigned int               fBinary_Closing_SX; 
-    const unsigned int               fBinary_Closing_SY;
+    const unsigned int               fBinary_Dilation_SX; 
+    const unsigned int               fBinary_Dilation_SY;
     
 };
 

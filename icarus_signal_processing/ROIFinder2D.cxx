@@ -28,8 +28,8 @@ icarus_signal_processing::ROIChainFilter::ROIChainFilter(size_t             FREQ
                                                          // float NOISE_VARIANCE = 20.0;
                                                          const unsigned int ADFILTER_SX,
                                                          const unsigned int ADFILTER_SY,
-                                                         const unsigned int BINARY_CLOSING_SX,
-                                                         const unsigned int BINARY_CLOSING_SY,
+                                                         const unsigned int BINARY_DILATION_SX,
+                                                         const unsigned int BINARY_DILATION_SY,
                                                          const float        GLOBAL_THRESHOLDING_FACTOR) : 
                             fFrequencyThreshold(FREQUENCY_THRESHOLD),
                             fFrequency_filter_smoothness_order(FREQUENCY_FILTER_SMOOTHNESS_ORDER),
@@ -46,8 +46,8 @@ icarus_signal_processing::ROIChainFilter::ROIChainFilter(size_t             FREQ
                             fAngle_Window(ANGLE_WINDOW),
                             fADFilter_SX(ADFILTER_SX),
                             fADFilter_SY(ADFILTER_SY),
-                            fBinary_Closing_SX(BINARY_CLOSING_SX),
-                            fBinary_Closing_SY(BINARY_CLOSING_SY),
+                            fBinary_Dilation_SX(BINARY_DILATION_SX),
+                            fBinary_Dilation_SY(BINARY_DILATION_SY),
                             fGlobal_Thresholding_Factor(GLOBAL_THRESHOLDING_FACTOR)
 
 {
@@ -248,8 +248,8 @@ icarus_signal_processing::ROICannyFilter::ROICannyFilter(const IFFTFilterFunctio
                                                          const float                sigma_r, 
                                                          const float                lowThreshold,
                                                          const float                highThreshold,
-                                                         const unsigned int         BINARY_CLOSING_SX,
-                                                         const unsigned int         BINARY_CLOSING_SY) :
+                                                         const unsigned int         BINARY_DILATION_SX,
+                                                         const unsigned int         BINARY_DILATION_SY) :
 //                            fMorphologyFilter(morphologyFilter),
                             fDenoising(denoising),
                             fBilateralFilter(bilateralFilter),
@@ -261,8 +261,8 @@ icarus_signal_processing::ROICannyFilter::ROICannyFilter(const IFFTFilterFunctio
                             fSigma_r(sigma_r),
                             fLowThreshold(lowThreshold),
                             fHighThreshold(highThreshold),
-                            fBinary_Closing_SX(BINARY_CLOSING_SX),
-                            fBinary_Closing_SY(BINARY_CLOSING_SY)
+                            fBinary_Dilation_SX(BINARY_DILATION_SX),
+                            fBinary_Dilation_SY(BINARY_DILATION_SY)
 
 {
     // Now create the image filter
@@ -342,16 +342,20 @@ void icarus_signal_processing::ROICannyFilter::operator()(const IROIFinder2D::Ar
 
     fBilateralFilter->directional(waveLessCoherent, direction, buffer, fADFilter_SX, fADFilter_SY, fSigma_x, fSigma_y, fSigma_r, 360);
 
-    std::cout << "==> Step 7: Perform Canny Edge Detection" << std::endl;
+    std::cout << "==> Step 7: Apply Second Morphological Enhancing" << std::endl;
+
+    Dilation2D(fADFilter_SX,fADFilter_SY)(buffer.begin(), numChannels, buffer.begin());
+
+    std::cout << "==> Step 8: Perform Canny Edge Detection" << std::endl;
 
     // 6. Apply Canny Edge Detection
     fEdgeDetector->Canny(buffer, rois, fADFilter_SX, fADFilter_SY,
                          fSigma_x, fSigma_y, fSigma_r,
-                         fLowThreshold, fHighThreshold, 'e');
+                         fLowThreshold, fHighThreshold, 'd');  // Since we run on deconvolved waveforms, use dilation 
 
-    std::cout << "==> Final Step: get closing, numChannels: " << numChannels << ", rois: " << rois.size() << ", output: " << outputROI.size() << std::endl;
+    std::cout << "==> Final Step: get dilation, numChannels: " << numChannels << ", rois: " << rois.size() << ", output: " << outputROI.size() << std::endl;
 
-    Closing2D(fBinary_Closing_SX,fBinary_Closing_SY)(rois.begin(), numChannels, outputROI.begin());
+    Dilation2D(fBinary_Dilation_SX,fBinary_Dilation_SY)(rois.begin(), numChannels, outputROI.begin());
 
     std::cout << "==> DONE!! returning to calling module..." << std::endl;
 
