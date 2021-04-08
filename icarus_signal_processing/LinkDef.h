@@ -9,11 +9,9 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class sigproc_tools::MiscUtils+;
-#pragma link C++ class sigproc_tools::Denoising+;
-#pragma link C++ class sigproc_tools::Morph1DFast+;
-#pragma link C++ class sigproc_tools::Morph2DFast+;
-#pragma link C++ class FrequencyFilters::sigproc_tools+;
+#pragma link C++ class icarus_signal_processing::Denoising+;
+#pragma link C++ class icarus_signal_processing::FindROI2D+;
+#pragma link C++ class ICARUSSigProcDefs+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
 

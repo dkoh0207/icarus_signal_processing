@@ -1,7 +1,6 @@
 #
 # This is an example GNUmakefile for my packages
 #
-NAME = sigproc_tools
 
 # specific names for this package
 SOURCES = $(wildcard *.cxx)
@@ -9,7 +8,9 @@ FMWK_HEADERS = LinkDef.h
 HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 
 # include options for this package
-INCFLAGS  = -I.                       #Include itself
+INCFLAGS  = -I. \
+			-I/sdf/group/neutrino/koh0207/DSP/icarus_signal_processing/icarus_signal_processing/Filters \
+			-I/sdf/group/neutrino/koh0207/DSP/icarus_signal_processing/icarus_signal_processing/Detection
 CXXFLAGS=-Werror
 
 # platform-specific options

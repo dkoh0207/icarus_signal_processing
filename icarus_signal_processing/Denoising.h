@@ -56,6 +56,7 @@ public:
                              ArrayBool::iterator,
                              ArrayFloat::iterator,
                              const unsigned int,
+                             const unsigned int,
                              const unsigned int ) const;
     
     float getMedian(      std::vector<float>&, const unsigned int) const;
@@ -91,6 +92,7 @@ public:
                             ArrayFloat::iterator,
                             FilterFunctionVec::const_iterator,
                             const VectorFloat&,
+                            const unsigned int,
                             const unsigned int,
                             const unsigned int,
                             const unsigned int ) const = 0;
@@ -135,6 +137,7 @@ public:
                     const VectorFloat&,
                     const unsigned int,
                     const unsigned int,
+                    const unsigned int,
                     const unsigned int ) const override;
 
 private:
@@ -156,6 +159,7 @@ public:
                     ArrayFloat::iterator,
                     FilterFunctionVec::const_iterator,
                     const VectorFloat&,
+                    const unsigned int,
                     const unsigned int,
                     const unsigned int,
                     const unsigned int ) const override;
@@ -188,6 +192,7 @@ private:
     const IMorphologicalFunctions2D* fFilterFunction;
     const VectorFloat&               fThresholdVec;
     unsigned int                     fCoherentNoiseGrouping;
+    unsigned int                     fCoherentNoiseGroupingOffset;
     unsigned int                     fMorphologicalWindow;
     bool                             fOutputStats;
 };
@@ -198,6 +203,7 @@ public:
     Denoiser2D_Hough(const IMorphologicalFunctions2D*,    // Filter function to apply for finding protected regions
                      const VectorFloat&,                  // Thresholds to apply
                      unsigned int,                        // Coherent noise grouping (# of channels)
+                     unsigned int,                        // Channel grouping offset from 0 channel #.
                      unsigned int,                        // Window for morphological filter
                      bool outputStats=false);             // If on will activate some timing statistics
 
@@ -214,6 +220,7 @@ private:
     const IMorphologicalFunctions2D* fFilterFunction;
     const VectorFloat&               fThresholdVec;
     unsigned int                     fCoherentNoiseGrouping;
+    unsigned int                     fCoherentNoiseGroupingOffset;
     unsigned int                     fMorphologicalWindow;
     bool fOutputStats;
 

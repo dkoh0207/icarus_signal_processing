@@ -32,20 +32,6 @@ else
     return 1;
 fi
 
-# Check Numpy
-export MYSW_NUMPY=`$MYSW_DIR/bin/check_numpy`
-
-# warning for missing support
-missing=""
-if [ $MYSW_NUMPY -eq 0 ]; then
-    missing+=" Numpy"
-else
-    MYSW_INCLUDES="${MYSW_INCLUDES} -I`python -c\"import numpy; print(numpy.get_include())\"`"
-fi
-if [[ $missing ]]; then
-    printf "\033[93mWarning\033[00m ... missing$missing support. Build without them.\n";
-fi
-
 echo
 printf "\033[93mLArCV\033[00m FYI shell env. may useful for external packages:\n"
 printf "    \033[95mMYSW_INCDIR\033[00m   = $MYSW_INCDIR\n"
