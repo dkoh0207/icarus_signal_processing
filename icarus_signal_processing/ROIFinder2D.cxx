@@ -294,9 +294,9 @@ void icarus_signal_processing::ROICannyFilter::operator()(const IROIFinder2D::Ar
 
     // 1. Buffers for intermediate computations
     Array2D<float> buffer(           numChannels, std::vector<float>(numTicks,0.));
-    Array2D<bool>  selectVals(       numChannels, std::vector<bool>( numTicks,0.));
-    Array2D<bool>  rois(             numChannels, std::vector<bool>( numTicks,0.));
-    Array2D<bool>  refinedSelectVals(numChannels, std::vector<bool>( numTicks,0.));
+    Array2D<bool>  selectVals(       numChannels, std::vector<bool>( numTicks,false));
+    Array2D<bool>  rois(             numChannels, std::vector<bool>( numTicks,false));
+    Array2D<bool>  refinedSelectVals(numChannels, std::vector<bool>( numTicks,false));
 
     icarus_signal_processing::MiscUtils utils;
 
