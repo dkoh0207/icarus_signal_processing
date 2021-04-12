@@ -144,6 +144,7 @@ void icarus_signal_processing::Denoiser1D_Ave::operator()(ArrayFloat::iterator  
                                                           const VectorFloat&                thresholdVec,
                                                           const unsigned int                numChannels,
                                                           const unsigned int                grouping,
+                                                          const unsigned int                offset,
                                                           const unsigned int                window) const
 {
     auto nTicks  = filteredWaveformsItr->size();
@@ -641,7 +642,7 @@ void icarus_signal_processing::Denoising::removeCoherentNoise(ArrayFloat::iterat
                 if (idxV > 5) median += getMedian(v,idxV);
             }
 
-            for (auto k=0; k<groupingOffset; ++k) 
+            for (unsigned int k=0; k<groupingOffset; ++k) 
             {
                 correctedMediansItr[k][i] = median;
                 waveLessCoherentItr[k][i] = filteredWaveformsItr[k][i] - median;
