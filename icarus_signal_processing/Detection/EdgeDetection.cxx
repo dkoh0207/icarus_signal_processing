@@ -204,11 +204,11 @@ void icarus_signal_processing::EdgeDetection::SepSobelRow(const VectorFloat &inp
   const int N = inputRow.size();
 
   // Boundary cases
-  outputRow[0] = -1.0 * inputRow[1];
-  outputRow[N-1] = 1.0 * inputRow[N-2];
+  outputRow[0] = -inputRow[1];
+  outputRow[N-1] = inputRow[N-2];
 
   for (int i=1; i<N-1; ++i) {
-    outputRow[i] = 1.0 * inputRow[i-1] + -1.0 * inputRow[i+1];
+    outputRow[i] = inputRow[i-1] - inputRow[i+1];
   }
 
   return;
@@ -220,11 +220,11 @@ void icarus_signal_processing::EdgeDetection::SepSobelCol(const VectorFloat &inp
   const int N = inputRow.size();
 
   // Boundary cases
-  outputRow[0] = 2.0 * inputRow[0] + 1.0 * inputRow[1];
-  outputRow[N-1] = 2.0 * inputRow[N-1] * 1.0 * inputRow[N-2];
+  outputRow[0] = 2.0 * inputRow[0] + inputRow[1];
+  outputRow[N-1] = 2.0 * inputRow[N-1] + inputRow[N-2];
 
   for (int i=1; i<N-1; ++i) {
-    outputRow[i] = 1.0 * inputRow[i-1] + 1.0 * inputRow[i+1] + 2.0 * inputRow[i];
+    outputRow[i] = inputRow[i-1] + inputRow[i+1] + 2.0 * inputRow[i];
   }
 
   return;
