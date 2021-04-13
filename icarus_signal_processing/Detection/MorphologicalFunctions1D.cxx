@@ -34,7 +34,7 @@ void Dilation1D::operator()(const Waveform<bool>& inputWaveform,
         return;
     }
 
-    size_t N = inputWaveform.size();
+    const size_t N = inputWaveform.size();
 
     if (N <= fStructuringElement) 
     {
@@ -42,9 +42,9 @@ void Dilation1D::operator()(const Waveform<bool>& inputWaveform,
         return;
     }
 
-    size_t bufferSize  = N + 2 * (fStructuringElement/2) + (fStructuringElement - (N % fStructuringElement));
-    size_t windowSize  = fStructuringElement/2;
-    size_t paddingSize = fStructuringElement - (N % fStructuringElement);
+    const size_t windowSize  = fStructuringElement/2;
+    const size_t paddingSize = (fStructuringElement - (N % fStructuringElement)) % fStructuringElement;
+    const size_t bufferSize  = N + 2 * windowSize + paddingSize;
 
     std::vector<bool> suffixArr(bufferSize);
     std::vector<bool> prefixArr(bufferSize);
@@ -63,7 +63,10 @@ void Dilation1D::operator()(const Waveform<bool>& inputWaveform,
     // Compute Prefix and Suffix Buffers
     for (size_t i=0; i<N+paddingSize; ++i) {
         if (i % fStructuringElement == 0) prefixArr[i+windowSize] = inputWaveform[i];
-        else                              prefixArr[i+windowSize] = prefixArr[i+windowSize-1] || inputWaveform[i];
+        else if ((i % fStructuringElement == 0) && (i < N)) {
+          prefixArr[i+windowSize] = prefixArr[i+windowSize-1] || inputWaveform[i];
+        }
+        else continue;
     }
 
     for (size_t i=N+paddingSize; i!=0; --i) {
@@ -123,7 +126,7 @@ template <typename T> void icarus_signal_processing::Dilation1D::getDilation(con
         return;
     }
 
-    size_t N = inputWaveform.size();
+    const size_t N = inputWaveform.size();
 
     if (N <= fStructuringElement) 
     {
@@ -131,9 +134,9 @@ template <typename T> void icarus_signal_processing::Dilation1D::getDilation(con
         return;
     }
 
-    size_t bufferSize  = N + 2 * (fStructuringElement/2) + (fStructuringElement - (N % fStructuringElement));
-    size_t windowSize  = fStructuringElement/2;
-    size_t paddingSize = fStructuringElement - (N % fStructuringElement);
+    const size_t windowSize  = fStructuringElement/2;
+    const size_t paddingSize = (fStructuringElement - (N % fStructuringElement)) % fStructuringElement;
+    const size_t bufferSize  = N + 2 * windowSize + paddingSize;
 
     std::vector<T> suffixArr(bufferSize);
     std::vector<T> prefixArr(bufferSize);
@@ -151,11 +154,14 @@ template <typename T> void icarus_signal_processing::Dilation1D::getDilation(con
 
     // Compute Prefix and Suffix Buffers
     for (size_t i=0; i<N+paddingSize; ++i) {
-        if (i % fStructuringElement == 0) prefixArr[i+windowSize] = inputWaveform[i];
-        else                              prefixArr[i+windowSize] = std::max(prefixArr[i+windowSize-1], inputWaveform[i]);
+        if      (i % fStructuringElement == 0) prefixArr[i+windowSize] = inputWaveform[i];
+        else if ((i % fStructuringElement == 0) && (i < N)) {
+          prefixArr[i+windowSize] = std::max(prefixArr[i+windowSize-1], inputWaveform[i]);
+        }
+        else    continue;
     }
 
-    for (size_t i=N+paddingSize; i!=0; --i) {
+    for (size_t i=N+paddingSize; i>0; --i) {
         if      (i > N)                        continue;  // Compensate for divisibility padding (must be -inf)
         else if (i % fStructuringElement == 0) suffixArr[i+windowSize-1] = inputWaveform[i-1];
         else                                   suffixArr[i+windowSize-1] = std::max(suffixArr[i+windowSize], inputWaveform[i-1]);
@@ -164,10 +170,10 @@ template <typename T> void icarus_signal_processing::Dilation1D::getDilation(con
     int prefixIndex = 0;
     int suffixIndex = 0;
 
-    for (size_t i=0; i<N; ++i) {
-        prefixIndex    = i + 2 * windowSize;
-        suffixIndex    = i;
-        dilationVec[i] = std::max(prefixArr[prefixIndex],suffixArr[suffixIndex]);
+    for (size_t i=windowSize; i<N+windowSize; ++i) {
+        prefixIndex    = i + windowSize;
+        suffixIndex    = i - windowSize;
+        dilationVec[i-windowSize] = std::max(prefixArr[prefixIndex],suffixArr[suffixIndex]);
     }
 
 
@@ -183,7 +189,7 @@ void Erosion1D::operator()(const Waveform<bool>& inputWaveform,
         return;
     }
 
-    size_t N = inputWaveform.size();
+    const size_t N = inputWaveform.size();
 
     if (N <= fStructuringElement) 
     {
@@ -191,9 +197,9 @@ void Erosion1D::operator()(const Waveform<bool>& inputWaveform,
         return;
     }
 
-    size_t bufferSize  = N + 2 * (fStructuringElement/2) + (fStructuringElement - (N % fStructuringElement));
-    size_t windowSize  = fStructuringElement/2;
-    size_t paddingSize = fStructuringElement - (N % fStructuringElement);
+    const size_t windowSize  = fStructuringElement/2;
+    const size_t paddingSize = (fStructuringElement - (N % fStructuringElement)) % fStructuringElement;
+    const size_t bufferSize  = N + 2 * windowSize + paddingSize;
 
     std::vector<bool> suffixArr(bufferSize);
     std::vector<bool> prefixArr(bufferSize);
@@ -212,7 +218,10 @@ void Erosion1D::operator()(const Waveform<bool>& inputWaveform,
     // Compute Prefix and Suffix Buffers
     for (size_t i=0; i<N+paddingSize; ++i) {
         if (i % fStructuringElement == 0) prefixArr[i+windowSize] = inputWaveform[i];
-        else                              prefixArr[i+windowSize] = prefixArr[i+windowSize-1] && inputWaveform[i];
+        else if ((i % fStructuringElement == 0) && (i < N)) {
+          prefixArr[i+windowSize] = prefixArr[i+windowSize-1] && inputWaveform[i];
+        }
+        else continue;
     }
 
     for (size_t i=N+paddingSize; i!=0; --i) {
@@ -224,10 +233,10 @@ void Erosion1D::operator()(const Waveform<bool>& inputWaveform,
     int prefixIndex = 0;
     int suffixIndex = 0;
 
-    for (size_t i=0; i<N; ++i) {
-        prefixIndex = i + 2 * windowSize;
-        suffixIndex = i;
-        erosionVec[i] = prefixArr[prefixIndex] && suffixArr[suffixIndex];
+    for (size_t i=windowSize; i<N+windowSize; ++i) {
+        prefixIndex = i + windowSize;
+        suffixIndex = i - windowSize;
+        erosionVec[i-windowSize] = prefixArr[prefixIndex] && suffixArr[suffixIndex];
     }
 
     return;
@@ -261,7 +270,7 @@ template <typename T> void icarus_signal_processing::Erosion1D::getErosion(const
         return;
     }
 
-    size_t N = inputWaveform.size();
+    const size_t N = inputWaveform.size();
 
     if (N <= fStructuringElement) 
     {
@@ -269,9 +278,9 @@ template <typename T> void icarus_signal_processing::Erosion1D::getErosion(const
         return;
     }
 
-    size_t bufferSize  = N + 2 * (fStructuringElement/2) + (fStructuringElement - (N % fStructuringElement));
-    size_t windowSize  = fStructuringElement/2;
-    size_t paddingSize = fStructuringElement - (N % fStructuringElement);
+    const size_t windowSize  = fStructuringElement/2;
+    const size_t paddingSize = (fStructuringElement - (N % fStructuringElement)) % fStructuringElement;
+    const size_t bufferSize  = N + 2 * windowSize + paddingSize;
 
     std::vector<T> suffixArr(bufferSize);
     std::vector<T> prefixArr(bufferSize);
@@ -290,7 +299,10 @@ template <typename T> void icarus_signal_processing::Erosion1D::getErosion(const
     // Compute Prefix and Suffix Buffers
     for (size_t i=0; i<N+paddingSize; ++i) {
         if (i % fStructuringElement == 0) prefixArr[i+windowSize] = inputWaveform[i];
-        else                              prefixArr[i+windowSize] = std::min(prefixArr[i+windowSize-1], inputWaveform[i]);
+        else if ((i % fStructuringElement == 0) && (i < N)) {
+          prefixArr[i+windowSize] = std::min(prefixArr[i+windowSize-1], inputWaveform[i]);
+        }
+        else continue;
     }
 
     for (size_t i=N+paddingSize; i!=0; --i) {
@@ -302,9 +314,9 @@ template <typename T> void icarus_signal_processing::Erosion1D::getErosion(const
     int prefixIndex = 0;
     int suffixIndex = 0;
 
-    for (size_t i=0; i<N; ++i) {
-        prefixIndex = i + 2 * windowSize;
-        suffixIndex = i;
+    for (size_t i=windowSize; i<N+windowSize; ++i) {
+        prefixIndex = i + windowSize;
+        suffixIndex = i - windowSize;
         erosionVec[i] = std::min(prefixArr[prefixIndex],suffixArr[suffixIndex]);
     }
 
