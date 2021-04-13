@@ -336,7 +336,7 @@ void icarus_signal_processing::ROICannyFilter::operator()(const IROIFinder2D::Ar
     Array2D<float> gradient  = Array2D<float>(numChannels, std::vector<float>(numTicks,0.));
     Array2D<float> direction = Array2D<float>(numChannels, std::vector<float>(numTicks,0.));
 
-    fEdgeDetector->Sobel(waveLessCoherent, sobelX, sobelY, gradient, direction);
+    fEdgeDetector->SepSobel(waveLessCoherent, sobelX, sobelY, gradient, direction);
 
     std::cout << "==> Step 6: Apply bilateral filter" << std::endl;
 

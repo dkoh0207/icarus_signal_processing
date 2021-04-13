@@ -43,6 +43,8 @@ namespace icarus_signal_processing
     /// Default constructor
     EdgeDetection() {}
 
+    // 2D convolution Sobel Filtering
+
     void Convolve2D(
         const Array2D<float> &input2D,
         Array2D<float> &output2D,
@@ -57,6 +59,34 @@ namespace icarus_signal_processing
         Array2D<float> &gradient) const;
 
     void Sobel(
+        const Array2D<float> &input2D,
+        Array2D<float> &sobelX,
+        Array2D<float> &sobelY,
+        Array2D<float> &gradient,
+        Array2D<float> &direction) const;
+
+    // Sobel Filtering via Separable 1D convolutions
+    // Should give equivalent (due to edge effects, values may be slightly
+    // different for one pixel boundary of the image) results while being
+    // slightly faster. 
+
+    void SepSobelX(
+        const Array2D<float> &input2D,
+        Array2D<float> &gradient) const;
+
+    void SepSobelY(
+        const Array2D<float> &input2D,
+        Array2D<float> &gradient) const;
+
+    void SepSobelRow(
+        const VectorFloat &inputRow,
+        VectorFloat &outputRow) const;
+
+    void SepSobelCol(
+        const VectorFloat &inputRow,
+        VectorFloat &outputRow) const;
+
+    void SepSobel(
         const Array2D<float> &input2D,
         Array2D<float> &sobelX,
         Array2D<float> &sobelY,

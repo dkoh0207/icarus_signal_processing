@@ -120,6 +120,116 @@ void icarus_signal_processing::EdgeDetection::Sobel(const Array2D<float> &input2
   return;
 }
 
+void icarus_signal_processing::EdgeDetection::SepSobel(const Array2D<float> &input2D,
+                                                    Array2D<float> &sobelX,
+                                                    Array2D<float> &sobelY,
+                                                    Array2D<float> &gradient,
+                                                    Array2D<float> &direction) const
+{
+  int numChannels = input2D.size();
+  int numTicks = input2D.at(0).size();
+
+  SepSobelX(input2D, sobelX);
+  SepSobelY(input2D, sobelY);
+
+  for (int i = 0; i < numChannels; ++i)
+  {
+    for (int j = 0; j < numTicks; ++j)
+    {
+      float g = sqrt(sobelX[i][j] * sobelX[i][j] + sobelY[i][j] * sobelY[i][j]);
+      gradient[i][j] = g;
+      float gradDir = atan2(sobelY[i][j], sobelX[i][j]);
+      direction[i][j] = gradDir * 180.0 / M_PI;
+    }
+  }
+
+  return;
+}
+
+void icarus_signal_processing::EdgeDetection::SepSobelX(const Array2D<float> &input2D,
+                                                        Array2D<float> &gradient) const
+{
+  const int numChannels = input2D.size();
+  const int numTicks = input2D.at(0).size();
+
+  for (int i = 0; i < numChannels; ++i)
+  {
+    SepSobelRow(input2D[i], gradient[i]);
+  }
+
+  for (int j = 0; j < numTicks; ++j) {
+    VectorFloat columnIn(numChannels);
+    VectorFloat columnOut(numChannels);
+    for (int i = 0; i < numChannels; ++i) {
+      columnIn[i] = gradient[i][j];
+    }
+    SepSobelCol(columnOut, columnOut);
+    for (int i = 0; i < numChannels; ++i) {
+      gradient[i][j] = columnOut[i];
+    }
+  }
+
+  return;
+}
+
+void icarus_signal_processing::EdgeDetection::SepSobelY(const Array2D<float> &input2D,
+                                                        Array2D<float> &gradient) const
+{
+  const int numChannels = input2D.size();
+  const int numTicks = input2D.at(0).size();
+
+  for (int i = 0; i < numChannels; ++i)
+  {
+    SepSobelCol(input2D[i], gradient[i]);
+  }
+
+  for (int j = 0; j < numTicks; ++j) {
+    VectorFloat columnIn(numChannels);
+    VectorFloat columnOut(numChannels);
+    for (int i = 0; i < numChannels; ++i) {
+      columnIn[i] = gradient[i][j];
+    }
+    SepSobelRow(columnOut, columnOut);
+    for (int i = 0; i < numChannels; ++i) {
+      gradient[i][j] = columnOut[i];
+    }
+  }
+
+  return;
+}
+
+void icarus_signal_processing::EdgeDetection::SepSobelRow(const VectorFloat &inputRow,
+                                                          VectorFloat &outputRow) const
+{
+  const int N = inputRow.size();
+
+  // Boundary cases
+  outputRow[0] = -1.0 * inputRow[1];
+  outputRow[N-1] = 1.0 * inputRow[N-2];
+
+  for (int i=1; i<N-1; ++i) {
+    outputRow[i] = 1.0 * inputRow[i-1] + -1.0 * inputRow[i+1];
+  }
+
+  return;
+}
+
+void icarus_signal_processing::EdgeDetection::SepSobelCol(const VectorFloat &inputRow,
+                                                          VectorFloat &outputRow) const
+{
+  const int N = inputRow.size();
+
+  // Boundary cases
+  outputRow[0] = 2.0 * inputRow[0] + 1.0 * inputRow[1];
+  outputRow[N-1] = 2.0 * inputRow[N-1] * 1.0 * inputRow[N-2];
+
+  for (int i=1; i<N-1; ++i) {
+    outputRow[i] = 1.0 * inputRow[i-1] + 1.0 * inputRow[i+1] + 2.0 * inputRow[i];
+  }
+
+  return;
+}
+
 void icarus_signal_processing::EdgeDetection::LSDGradX(const Array2D<float> &input2D,
                                                        Array2D<float> &output2D) const
 {
