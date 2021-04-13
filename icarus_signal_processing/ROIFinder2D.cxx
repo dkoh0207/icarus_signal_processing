@@ -329,26 +329,10 @@ void icarus_signal_processing::ROICannyFilter::operator()(const IROIFinder2D::Ar
                   medianVals.begin(),
                   numChannels);
   
-    // 5. Directional Smoothing
-    std::cout << "++> Step 5: Directional smoothing" << std::endl;
-    Array2D<float> sobelX    = Array2D<float>(numChannels, std::vector<float>(numTicks,0.));
-    Array2D<float> sobelY    = Array2D<float>(numChannels, std::vector<float>(numTicks,0.));
-    Array2D<float> gradient  = Array2D<float>(numChannels, std::vector<float>(numTicks,0.));
-    Array2D<float> direction = Array2D<float>(numChannels, std::vector<float>(numTicks,0.));
 
-    fEdgeDetector->SepSobel(waveLessCoherent, sobelX, sobelY, gradient, direction);
+    std::cout << "==> Step 5: Perform Canny Edge Detection" << std::endl;
 
-    std::cout << "==> Step 6: Apply bilateral filter" << std::endl;
-
-    fBilateralFilter->directional(waveLessCoherent, direction, buffer, fADFilter_SX, fADFilter_SY, fSigma_x, fSigma_y, fSigma_r, 360);
-
-    std::cout << "==> Step 7: Apply Second Morphological Enhancing" << std::endl;
-
-    Dilation2D(fADFilter_SX,fADFilter_SY)(buffer.begin(), numChannels, buffer.begin());
-
-    std::cout << "==> Step 8: Perform Canny Edge Detection" << std::endl;
-
-    // 6. Apply Canny Edge Detection
+    // 5. Apply Canny Edge Detection
     fEdgeDetector->Canny(buffer, rois, fADFilter_SX, fADFilter_SY,
                          fSigma_x, fSigma_y, fSigma_r,
                          fLowThreshold, fHighThreshold, 'd');  // Since we run on deconvolved waveforms, use dilation 

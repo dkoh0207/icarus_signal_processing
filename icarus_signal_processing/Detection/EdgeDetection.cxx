@@ -503,7 +503,7 @@ void icarus_signal_processing::EdgeDetection::DoubleThresholding(const Array2D<f
                 strongEdgeRows.push_back(i);
                 strongEdgeCols.push_back(j);
             }
-            else if (doneNMS2D[i][j] < highThreshold && doneNMS2D[i][j] >= lowThreshold)
+            else if ((doneNMS2D[i][j] < highThreshold) && (doneNMS2D[i][j] >= lowThreshold))
             {
                 weakEdgeRows.push_back(i);
                 weakEdgeCols.push_back(j);
@@ -663,9 +663,10 @@ void icarus_signal_processing::EdgeDetection::Canny(const Array2D<float> &waveLe
         v.resize(numTicks);
     }
 
-    Sobel(waveLessCoherent, sobelX, sobelY, gradient, direction);
+    SepSobel(waveLessCoherent, sobelX, sobelY, gradient, direction);
 
     // 1. Perform Edge-Preserving Smoothing
+    // Here sx = 7, sy = 7, sigma_x = 10, sigma_y = 10, sigma_r = 30
     filter.directional(waveLessCoherent, direction, temp, sx, sy, sigma_x, sigma_y, sigma_r, 360);
 
     // 2. Run Morphological FIlter
@@ -686,7 +687,7 @@ void icarus_signal_processing::EdgeDetection::Canny(const Array2D<float> &waveLe
     }
 
     // 2. Run Sobel Edge Filtering
-    Sobel(morphed2D, sobelX, sobelY, gradient, direction);
+    SepSobel(morphed2D, sobelX, sobelY, gradient, direction);
 
     // 3. NMS Edge with Interpolation
     EdgeNMSInterpolation(gradient, sobelX, sobelY, direction, temp);
@@ -800,8 +801,8 @@ void icarus_signal_processing::EdgeDetection::getDilation1D(const std::vector<bo
                                                             const unsigned int       structuringElement,
                                                             std::vector<bool>&       dilationVec) const
 {
-    size_t N = inputWaveform.size();
-    size_t k = (size_t)structuringElement;
+    const size_t N = inputWaveform.size();
+    const size_t k = (size_t)structuringElement;
 
     assert(dilationVec.size() == N);
 
@@ -810,9 +811,9 @@ void icarus_signal_processing::EdgeDetection::getDilation1D(const std::vector<bo
         std::cout << "Input array size " << N << " must be greater than structuring element size " << k << std::endl;
         return;
     }
-    size_t bufferSize = N + 2 * (k / 2) + (k - (N % k));
-    size_t windowSize = k / 2;
-    size_t paddingSize = k - (N % k);
+    const size_t windowSize = k/2;
+    const size_t paddingSize = (k - (N % k)) % k;
+    const size_t bufferSize = N + 2 * windowSize + paddingSize;
     std::vector<bool> suffixArr(bufferSize);
     std::vector<bool> prefixArr(bufferSize);
 
@@ -836,10 +837,11 @@ void icarus_signal_processing::EdgeDetection::getDilation1D(const std::vector<bo
         {
             prefixArr[i + windowSize] = inputWaveform[i];
         }
-        else
+        else if ((i % k == 0) && (i < N))
         {
             prefixArr[i + windowSize] = (prefixArr[i + windowSize - 1] || inputWaveform[i]);
         }
+        else continue;
     }
 
     for (size_t i = N + paddingSize; i != 0; --i)
@@ -862,11 +864,11 @@ void icarus_signal_processing::EdgeDetection::getDilation1D(const std::vector<bo
     int prefixIndex = 0;
     int suffixIndex = 0;
 
-    for (size_t i = 0; i < N; ++i)
+    for (size_t i = windowSize; i < N + windowSize; ++i)
     {
-        prefixIndex = i + 2 * windowSize;
-        suffixIndex = i;
-        dilationVec[i] = (prefixArr[prefixIndex] || suffixArr[suffixIndex]);
+        prefixIndex = i + windowSize;
+        suffixIndex = i - windowSize;
+        dilationVec[i - windowSize] = (prefixArr[prefixIndex] || suffixArr[suffixIndex]);
     }
     return;
 }
