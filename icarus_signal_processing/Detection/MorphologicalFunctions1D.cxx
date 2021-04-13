@@ -78,10 +78,10 @@ void Dilation1D::operator()(const Waveform<bool>& inputWaveform,
     int prefixIndex = 0;
     int suffixIndex = 0;
 
-    for (size_t i=0; i<N; ++i) {
-        prefixIndex    = i + 2 * windowSize;
-        suffixIndex    = i;
-        dilationVec[i] = prefixArr[prefixIndex] || suffixArr[suffixIndex];
+    for (size_t i=windowSize; i<N+windowSize; ++i) {
+        prefixIndex    = i + windowSize;
+        suffixIndex    = i - windowSize;
+        dilationVec[i-windowSize] = prefixArr[prefixIndex] || suffixArr[suffixIndex];
     }
 
     return;
@@ -158,7 +158,7 @@ template <typename T> void icarus_signal_processing::Dilation1D::getDilation(con
         else if ((i % fStructuringElement == 0) && (i < N)) {
           prefixArr[i+windowSize] = std::max(prefixArr[i+windowSize-1], inputWaveform[i]);
         }
-        else    continue;
+        else continue;
     }
 
     for (size_t i=N+paddingSize; i>0; --i) {
@@ -224,7 +224,7 @@ void Erosion1D::operator()(const Waveform<bool>& inputWaveform,
         else continue;
     }
 
-    for (size_t i=N+paddingSize; i!=0; --i) {
+    for (size_t i=N+paddingSize; i>0; --i) {
         if (i > N)                             continue; // Compensate for divisibility padding (must be -inf)
         else if (i % fStructuringElement == 0) suffixArr[i+windowSize-1] = inputWaveform[i-1];
         else                                   suffixArr[i+windowSize-1] = suffixArr[i+windowSize] && inputWaveform[i-1];
@@ -305,7 +305,7 @@ template <typename T> void icarus_signal_processing::Erosion1D::getErosion(const
         else continue;
     }
 
-    for (size_t i=N+paddingSize; i!=0; --i) {
+    for (size_t i=N+paddingSize; i>0; --i) {
         if (i > N)                             continue; // Compensate for divisibility padding (must be -inf)
         else if (i % fStructuringElement == 0) suffixArr[i+windowSize-1] = inputWaveform[i-1];
         else                                   suffixArr[i+windowSize-1] = std::min(suffixArr[i+windowSize], inputWaveform[i-1]);
@@ -317,7 +317,7 @@ template <typename T> void icarus_signal_processing::Erosion1D::getErosion(const
     for (size_t i=windowSize; i<N+windowSize; ++i) {
         prefixIndex = i + windowSize;
         suffixIndex = i - windowSize;
-        erosionVec[i] = std::min(prefixArr[prefixIndex],suffixArr[suffixIndex]);
+        erosionVec[i-windowSize] = std::min(prefixArr[prefixIndex],suffixArr[suffixIndex]);
     }
 
     return;
