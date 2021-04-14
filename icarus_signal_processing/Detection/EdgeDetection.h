@@ -15,6 +15,8 @@
 #define __SIGPROC_TOOLS_EDGEDETECTION_H__
 #define _USE_MATH_DEFINES
 
+#include "icarus_signal_processing/ICARUSSigProcDefs.h"
+
 #include <vector>
 #include <iostream>
 #include <string>
