@@ -163,7 +163,7 @@ void icarus_signal_processing::EdgeDetection::SepSobelX(const Array2D<float> &in
     for (int i = 0; i < numChannels; ++i) {
       columnIn[i] = gradient[i][j];
     }
-    SepSobelCol(columnOut, columnOut);
+    SepSobelCol(columnIn, columnOut);
     for (int i = 0; i < numChannels; ++i) {
       gradient[i][j] = columnOut[i];
     }
@@ -189,7 +189,7 @@ void icarus_signal_processing::EdgeDetection::SepSobelY(const Array2D<float> &in
     for (int i = 0; i < numChannels; ++i) {
       columnIn[i] = gradient[i][j];
     }
-    SepSobelRow(columnOut, columnOut);
+    SepSobelRow(columnIn, columnOut);
     for (int i = 0; i < numChannels; ++i) {
       gradient[i][j] = columnOut[i];
     }
