@@ -24,6 +24,8 @@
 #include <assert.h>
 #include <queue>
 
+#include "DisjointSetForest.h"
+
 namespace icarus_signal_processing
 {
 
@@ -143,6 +145,12 @@ namespace icarus_signal_processing
         const std::vector<int> &weakEdgeRows,
         const std::vector<int> &weakEdgeCols,
         Array2D<bool> &output2D) const;
+
+    void HysteresisThresholdingFast(
+        const Array2D<float> &doneNMS2D,
+        float lowThreshold,
+        float highThreshold,
+        Array2D<bool>& outputROI) const;
 
     void Canny(
         const Array2D<float> &waveLessCoherent,
