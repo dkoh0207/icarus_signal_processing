@@ -601,6 +601,94 @@ void icarus_signal_processing::EdgeDetection::HysteresisThresholding(const Array
     return;
 }
 
+void icarus_signal_processing::EdgeDetection::HysteresisThresholdingFast(const Array2D<float> &doneNMS2D,
+                                                                         float lowThreshold,
+                                                                         float highThreshold,
+                                                                         Array2D<bool> &outputROI) const
+{
+  /*
+  Hysteresis Thresholding using Disjoint Set Forest Data Structure and Union-Find
+
+  Reference:
+  Artur Nowakowski, Wladyslaw Skarbek, "Fast computation of thresholding hysteresis for edge detection," 
+  Proc. SPIE 6159, Photonics Applications in Astronomy, Communications, Industry, and 
+  High-Energy Physics Experiments IV, 615948 (26 April 2006); https://doi.org/10.1117/12.674959
+
+  This Hysteresis Thresholding includes double thresholding, and performs both in one pass. 
+  */
+  const int numChannels = doneNMS2D.size();
+  const int numTicks = doneNMS2D.at(0).size();
+
+  const int forestSize = numChannels * numTicks;
+
+  DisjointSetForest forest(forestSize);
+  forest.MakeSet();
+
+  for (int i = 0; i < numChannels; ++i) {
+
+    for (int j = 0; j < numTicks; ++j) {
+
+      int flatIndex = i * numTicks + j;
+      int lowerBoundx = std::max(i-1, 0);
+      int upperBoundx = std::min(i+1, (int) numChannels);
+      int lowerBoundy = std::max(j-1, 0);
+      int upperBoundy = std::min(j+1, (int) numTicks);
+
+      // Process strong edges and its neighbors
+      if (doneNMS2D[i][j] >= highThreshold) {
+        // Assign every strong edge to single root node (no need for unions)
+        // Root node has index forestSize (last element of array with size forestSize + 1)
+        forest.parent[flatIndex] = forestSize;
+        // Handle neighboring weak edges
+
+        for (int k = lowerBoundx; k < upperBoundx; ++k) {
+
+          for (int l = lowerBoundy; l < upperBoundy; ++l) {
+
+            int flatIndexNeigh = k * numTicks + l;
+            const float &grad = doneNMS2D[k][k];
+
+            if (grad < highThreshold && grad >= lowThreshold) {
+
+              forest.Union(flatIndexNeigh, flatIndex);
+            }
+          }
+        }
+      }
+      // Process weak edges
+      else if ( (doneNMS2D[i][j] < highThreshold) && (doneNMS2D[i][j] >= lowThreshold)) {
+
+        for (int k = lowerBoundx; k < upperBoundx; ++k) {
+
+          for (int l = lowerBoundy; l < upperBoundy; ++l) {
+
+            int flatIndexNeigh = k * numTicks + l;
+            const float &grad = doneNMS2D[k][k];
+
+            if (grad < highThreshold && grad >= lowThreshold) {
+
+              forest.Union(flatIndexNeigh, flatIndex);
+            }
+          }
+        }
+      }
+      else continue;
+    }
+  }
+
+  for (int flatIdx = 0; flatIdx < forestSize; ++flatIdx) {
+
+    int rep = forest.Find(flatIdx);
+    int row = (flatIdx / numTicks);
+    int col = (flatIdx % numTicks);
+
+    if (rep == forestSize) outputROI[row][col] = true;
+
+    else outputROI[row][col] = false;
+  }
+  return;
+}
+
 void icarus_signal_processing::EdgeDetection::Canny(const Array2D<float> &waveLessCoherent,
                                                     Array2D<bool>        &output2D,
                                                     const unsigned int    sx,
@@ -694,16 +782,18 @@ void icarus_signal_processing::EdgeDetection::Canny(const Array2D<float> &waveLe
 
     // 4. Run double thresholding
 
-    std::vector<int> strongEdgeRows;
-    std::vector<int> strongEdgeCols;
-    std::vector<int> weakEdgeRows;
-    std::vector<int> weakEdgeCols;
+    // std::vector<int> strongEdgeRows;
+    // std::vector<int> strongEdgeCols;
+    // std::vector<int> weakEdgeRows;
+    // std::vector<int> weakEdgeCols;
 
-    DoubleThresholding(temp, boolTemp,
-                       strongEdgeRows, strongEdgeCols,
-                       weakEdgeRows, weakEdgeCols, lowThreshold, highThreshold);
+    HysteresisThresholdingFast(temp, lowThreshold, highThreshold, output2D);
 
-    HysteresisThresholding(boolTemp, strongEdgeRows, strongEdgeCols, weakEdgeRows, weakEdgeCols, output2D);
+    // DoubleThresholding(temp, boolTemp,
+    //                    strongEdgeRows, strongEdgeCols,
+    //                    weakEdgeRows, weakEdgeCols, lowThreshold, highThreshold);
+
+    // HysteresisThresholding(boolTemp, strongEdgeRows, strongEdgeCols, weakEdgeRows, weakEdgeCols, output2D);
 
     return;
 }
