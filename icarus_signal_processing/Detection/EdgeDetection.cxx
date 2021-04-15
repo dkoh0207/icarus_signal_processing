@@ -602,8 +602,8 @@ void icarus_signal_processing::EdgeDetection::HysteresisThresholding(const Array
 }
 
 void icarus_signal_processing::EdgeDetection::HysteresisThresholdingFast(const Array2D<float> &doneNMS2D,
-                                                                         float lowThreshold,
-                                                                         float highThreshold,
+                                                                         const float lowThreshold,
+                                                                         const float highThreshold,
                                                                          Array2D<bool> &outputROI) const
 {
   /*
@@ -624,21 +624,36 @@ void icarus_signal_processing::EdgeDetection::HysteresisThresholdingFast(const A
   DisjointSetForest forest(forestSize);
   forest.MakeSet();
 
+  // 1. Initialize Strong Edges
+
+  for (int i=0; i<numChannels; ++i) {
+
+    for (int j=0; j<numTicks; ++j) {
+
+      int flatIndex = i * numTicks + j;
+
+      if (doneNMS2D[i][j] >= highThreshold) forest.parent[flatIndex] = forestSize;
+    }
+  }
+
   for (int i = 0; i < numChannels; ++i) {
 
     for (int j = 0; j < numTicks; ++j) {
 
       int flatIndex = i * numTicks + j;
       int lowerBoundx = std::max(i-1, 0);
-      int upperBoundx = std::min(i+1, (int) numChannels);
+      int upperBoundx = std::min(i+2, (int) numChannels);
       int lowerBoundy = std::max(j-1, 0);
-      int upperBoundy = std::min(j+1, (int) numTicks);
+      int upperBoundy = std::min(j+2, (int) numTicks);
 
       // Process strong edges and its neighbors
       if (doneNMS2D[i][j] >= highThreshold) {
         // Assign every strong edge to single root node (no need for unions)
         // Root node has index forestSize (last element of array with size forestSize + 1)
-        forest.parent[flatIndex] = forestSize;
+        if (forest.Find(flatIndex) == flatIndex) {
+
+          forest.parent[flatIndex] = forestSize;
+        }
         // Handle neighboring weak edges
 
         for (int k = lowerBoundx; k < upperBoundx; ++k) {
@@ -646,9 +661,9 @@ void icarus_signal_processing::EdgeDetection::HysteresisThresholdingFast(const A
           for (int l = lowerBoundy; l < upperBoundy; ++l) {
 
             int flatIndexNeigh = k * numTicks + l;
-            const float &grad = doneNMS2D[k][k];
+            const float &grad = doneNMS2D[k][l];
 
-            if (grad < highThreshold && grad >= lowThreshold) {
+            if (grad >= lowThreshold) {
 
               forest.Union(flatIndexNeigh, flatIndex);
             }
@@ -663,9 +678,9 @@ void icarus_signal_processing::EdgeDetection::HysteresisThresholdingFast(const A
           for (int l = lowerBoundy; l < upperBoundy; ++l) {
 
             int flatIndexNeigh = k * numTicks + l;
-            const float &grad = doneNMS2D[k][k];
+            const float &grad = doneNMS2D[k][l];
 
-            if (grad < highThreshold && grad >= lowThreshold) {
+            if (grad >= lowThreshold) {
 
               forest.Union(flatIndexNeigh, flatIndex);
             }

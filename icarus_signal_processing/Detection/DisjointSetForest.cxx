@@ -4,7 +4,7 @@
 #include "DisjointSetForest.h"
 
 
-int icarus_signal_processing::DisjointSetForest::Find(int x) 
+int icarus_signal_processing::DisjointSetForest::Find(const int x) 
 {
     if (x == parent[x]) return x;
     else {
@@ -22,7 +22,7 @@ void icarus_signal_processing::DisjointSetForest::MakeSet()
     return;
 }
 
-void icarus_signal_processing::DisjointSetForest::MakeSet(std::vector<int>& strongEdges)
+void icarus_signal_processing::DisjointSetForest::MakeSet(const std::vector<int>& strongEdges)
 {
     if (strongEdges.size() < 1) {
         std::string msg = "When constructing disjoint set parent with list of root "
@@ -36,28 +36,39 @@ void icarus_signal_processing::DisjointSetForest::MakeSet(std::vector<int>& stro
         parent[i] = i;
     }
 
-    for (int& x : strongEdges) {
+    for (const int& x : strongEdges) {
         parent[x] = root;
     }
     return;
 }
 
-void icarus_signal_processing::DisjointSetForest::Union(int x, int y)
+void icarus_signal_processing::DisjointSetForest::Union(const int x, const int y)
 {
     int repX = Find(x);
     int repY = Find(y);
 
     if (repX == repY) return;
 
+    else if (repX == (int) (size-1)) parent[repY] = repX;
+
+    else if (repY == (int) (size-1)) parent[repX] = repY;
+
     else {
         int rankX = rank[repX];
         int rankY = rank[repY];
 
-        if (rankX < rankY) parent[repX] = repY;
-        else if (rankX > rankY) parent[repY] = repX;
+        if (rankX < rankY) {
+            parent[repX] = repY;
+            // std::cout << repX << " -> " << repY << std::endl;
+        }
+        else if (rankX > rankY) {
+            parent[repY] = repX;
+            // std::cout << repY << " -> " << repX << std::endl;
+        }
         else {
             parent[repX] = repY;
             rank[repY] = rank[repY] + 1;
+            // std::cout << repX << " -> " << repY << std::endl;
         }
     }
 } 

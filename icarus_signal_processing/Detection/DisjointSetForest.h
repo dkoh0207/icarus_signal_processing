@@ -46,11 +46,11 @@ namespace icarus_signal_processing {
 
       void MakeSet();
 
-      void MakeSet(std::vector<int>& strongEdges);
+      void MakeSet(const std::vector<int>& strongEdges);
 
-      void Union(int x, int y);
+      void Union(const int x, const int y);
 
-      int Find(int x);
+      int Find(const int x);
   };
 }
 
