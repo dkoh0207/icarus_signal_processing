@@ -321,7 +321,7 @@ void icarus_signal_processing::ROICannyFilter::operator()(const IROIFinder2D::Ar
     std::cout << "==> Step 4: Remove coherent noise" << std::endl;
 
     (*fDenoising)(waveLessCoherent.begin(),
-                  waveform2D.begin(),
+                  buffer.begin(),
                   morphedWaveform2D.begin(),
                   coherentRMS.begin(),
                   selectVals.begin(),
@@ -333,7 +333,7 @@ void icarus_signal_processing::ROICannyFilter::operator()(const IROIFinder2D::Ar
     std::cout << "==> Step 5: Perform Canny Edge Detection" << std::endl;
 
     // 5. Apply Canny Edge Detection
-    fEdgeDetector->Canny(buffer, rois, fADFilter_SX, fADFilter_SY,
+    fEdgeDetector->Canny(waveLessCoherent, rois, fADFilter_SX, fADFilter_SY,
                          fSigma_x, fSigma_y, fSigma_r,
                          fLowThreshold, fHighThreshold, 'd');  // Since we run on deconvolved waveforms, use dilation 
 
