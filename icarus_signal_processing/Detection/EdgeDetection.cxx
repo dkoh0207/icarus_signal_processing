@@ -606,7 +606,7 @@ void icarus_signal_processing::EdgeDetection::HysteresisThresholdingFast(const A
                                                                          const float highThreshold,
                                                                          Array2D<bool> &outputROI) const
 {
-  /*
+    /*
   Hysteresis Thresholding using Disjoint Set Forest Data Structure and Union-Find
 
   Reference:
@@ -616,92 +616,110 @@ void icarus_signal_processing::EdgeDetection::HysteresisThresholdingFast(const A
 
   This Hysteresis Thresholding includes double thresholding, and performs both in one pass. 
   */
-  const int numChannels = doneNMS2D.size();
-  const int numTicks = doneNMS2D.at(0).size();
+    const int numChannels = doneNMS2D.size();
+    const int numTicks = doneNMS2D.at(0).size();
 
-  const int forestSize = numChannels * numTicks;
+    const int forestSize = numChannels * numTicks;
 
-  DisjointSetForest forest(forestSize);
-  forest.MakeSet();
+    DisjointSetForest forest(forestSize);
+    forest.MakeSet();
 
-  // 1. Initialize Strong Edges
+    // 1. Initialize Strong Edges
 
-  for (int i=0; i<numChannels; ++i) {
+    for (int i = 0; i < numChannels; ++i)
+    {
 
-    for (int j=0; j<numTicks; ++j) {
+        for (int j = 0; j < numTicks; ++j)
+        {
 
-      int flatIndex = i * numTicks + j;
+            int flatIndex = i * numTicks + j;
 
-      if (doneNMS2D[i][j] >= highThreshold) forest.parent[flatIndex] = forestSize;
+            if (doneNMS2D[i][j] >= highThreshold)
+                forest.parent[flatIndex] = forestSize;
+        }
     }
-  }
 
-  for (int i = 0; i < numChannels; ++i) {
+    for (int i = 0; i < numChannels; ++i)
+    {
 
-    for (int j = 0; j < numTicks; ++j) {
+        for (int j = 0; j < numTicks; ++j)
+        {
 
-      int flatIndex = i * numTicks + j;
-      int lowerBoundx = std::max(i-1, 0);
-      int upperBoundx = std::min(i+2, (int) numChannels);
-      int lowerBoundy = std::max(j-1, 0);
-      int upperBoundy = std::min(j+2, (int) numTicks);
+            int flatIndex = i * numTicks + j;
+            int lowerBoundx = std::max(i - 1, 0);
+            int upperBoundx = std::min(i + 2, (int)numChannels);
+            int lowerBoundy = std::max(j - 1, 0);
+            int upperBoundy = std::min(j + 2, (int)numTicks);
 
-      // Process strong edges and its neighbors
-      if (doneNMS2D[i][j] >= highThreshold) {
-        // Assign every strong edge to single root node (no need for unions)
-        // Root node has index forestSize (last element of array with size forestSize + 1)
-        if (forest.Find(flatIndex) == flatIndex) {
+            // Process strong edges and its neighbors
+            if (doneNMS2D[i][j] >= highThreshold)
+            {
+                // Assign every strong edge to single root node (no need for unions)
+                // Root node has index forestSize (last element of array with size forestSize + 1)
+                if (forest.Find(flatIndex) == flatIndex)
+                {
 
-          forest.parent[flatIndex] = forestSize;
-        }
-        // Handle neighboring weak edges
+                    forest.parent[flatIndex] = forestSize;
+                }
+                // Handle neighboring weak edges
 
-        for (int k = lowerBoundx; k < upperBoundx; ++k) {
+                for (int k = lowerBoundx; k < upperBoundx; ++k)
+                {
 
-          for (int l = lowerBoundy; l < upperBoundy; ++l) {
+                    for (int l = lowerBoundy; l < upperBoundy; ++l)
+                    {
 
-            int flatIndexNeigh = k * numTicks + l;
-            const float &grad = doneNMS2D[k][l];
+                        int flatIndexNeigh = k * numTicks + l;
+                        const float &grad = doneNMS2D[k][l];
 
-            if (grad >= lowThreshold) {
+                        if (grad >= lowThreshold)
+                        {
 
-              forest.Union(flatIndexNeigh, flatIndex);
+                            forest.Union(flatIndexNeigh, flatIndex);
+                        }
+                    }
+                }
             }
-          }
-        }
-      }
-      // Process weak edges
-      else if ( (doneNMS2D[i][j] < highThreshold) && (doneNMS2D[i][j] >= lowThreshold)) {
+            // Process weak edges
+            else if ((doneNMS2D[i][j] < highThreshold) && (doneNMS2D[i][j] >= lowThreshold))
+            {
 
-        for (int k = lowerBoundx; k < upperBoundx; ++k) {
+                for (int k = lowerBoundx; k < upperBoundx; ++k)
+                {
 
-          for (int l = lowerBoundy; l < upperBoundy; ++l) {
+                    for (int l = lowerBoundy; l < upperBoundy; ++l)
+                    {
 
-            int flatIndexNeigh = k * numTicks + l;
-            const float &grad = doneNMS2D[k][l];
+                        int flatIndexNeigh = k * numTicks + l;
+                        const float &grad = doneNMS2D[k][l];
 
-            if (grad >= lowThreshold) {
+                        if (grad >= lowThreshold)
+                        {
 
-              forest.Union(flatIndexNeigh, flatIndex);
+                            forest.Union(flatIndexNeigh, flatIndex);
+                        }
+                    }
+                }
             }
-          }
+            else
+                continue;
         }
-      }
-      else continue;
     }
-  }
 
-  for (int flatIdx = 0; flatIdx < forestSize; ++flatIdx) {
+    for (int flatIdx = 0; flatIdx < forestSize; ++flatIdx)
+    {
 
-    int rep = forest.Find(flatIdx);
-    int row = (flatIdx / numTicks);
-    int col = (flatIdx % numTicks);
+        int rep = forest.Find(flatIdx);
+        int row = (flatIdx / numTicks);
+        int col = (flatIdx % numTicks);
 
-    if (rep == forestSize) outputROI[row][col] = true;
+        if (rep == forestSize)
+            outputROI[row][col] = true;
 
-    else outputROI[row][col] = false;
-  }
-  return;
+        else
+            outputROI[row][col] = false;
+    }
+    return;
 }
 
 void icarus_signal_processing::EdgeDetection::Canny(const Array2D<float> &waveLessCoherent,
