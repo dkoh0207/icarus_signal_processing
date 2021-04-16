@@ -61,27 +61,44 @@ void Dilation1D::operator()(const Waveform<bool>& inputWaveform,
     }
 
     // Compute Prefix and Suffix Buffers
-    for (size_t i=0; i<N+paddingSize; ++i) {
-        if (i % fStructuringElement == 0) prefixArr[i+windowSize] = inputWaveform[i];
-        else if ((i % fStructuringElement == 0) && (i < N)) {
-          prefixArr[i+windowSize] = prefixArr[i+windowSize-1] || inputWaveform[i];
+    // g_x 
+
+    for (size_t i=0; i<N; ++i) {
+
+        if (i > N) {
+            // Compensate for divisibility padding (must be -inf)
+            continue;
         }
-        else continue;
+        else if (i % fStructuringElement == 0) {
+            suffixArr[i+windowSize] = inputWaveform[i];
+        } 
+        else {
+            suffixArr[i+windowSize] = (suffixArr[i-1+windowSize] || inputWaveform[i]);
+        }
     }
 
-    for (size_t i=N+paddingSize; i!=0; --i) {
-        if      (i > N)                        continue;  // Compensate for divisibility padding (must be -inf)
-        else if (i % fStructuringElement == 0) suffixArr[i+windowSize-1] = inputWaveform[i-1];
-        else                                   suffixArr[i+windowSize-1] = suffixArr[i+windowSize] || inputWaveform[i-1];
+    int kint = (int) fStructuringElement;
+    // h_x
+
+    for (int i=N-1; i>-1; --i) {
+        if ((i+1) % kint == 0) {
+            prefixArr[i+windowSize] = inputWaveform[i];
+        } 
+        else if ((i+1) % kint != 0) {
+            prefixArr[i+windowSize] = (prefixArr[i+1+windowSize] || inputWaveform[i]);
+        }
+        else {
+            continue;
+        }
     }
 
     int prefixIndex = 0;
     int suffixIndex = 0;
 
-    for (size_t i=windowSize; i<N+windowSize; ++i) {
-        prefixIndex    = i + windowSize;
-        suffixIndex    = i - windowSize;
-        dilationVec[i-windowSize] = prefixArr[prefixIndex] || suffixArr[suffixIndex];
+    for (size_t i=0; i<N; ++i) {
+        suffixIndex = i + 2 * windowSize;
+        prefixIndex = i;
+        dilationVec[i] = (prefixArr[prefixIndex] || suffixArr[suffixIndex]);
     }
 
     return;
@@ -152,31 +169,45 @@ template <typename T> void icarus_signal_processing::Dilation1D::getDilation(con
         prefixArr[i] = std::numeric_limits<T>::min();
     }
 
-    // Compute Prefix and Suffix Buffers
-    for (size_t i=0; i<N+paddingSize; ++i) {
-        if      (i % fStructuringElement == 0) prefixArr[i+windowSize] = inputWaveform[i];
-        else if ((i % fStructuringElement == 0) && (i < N)) {
-          prefixArr[i+windowSize] = std::max(prefixArr[i+windowSize-1], inputWaveform[i]);
+  // g_x 
+
+    for (size_t i=0; i<N; ++i) {
+
+        if (i > N) {
+            // Compensate for divisibility padding (must be -inf)
+            continue;
         }
-        else continue;
+        else if (i % fStructuringElement == 0) {
+            suffixArr[i+windowSize] = inputWaveform[i];
+        } 
+        else {
+            suffixArr[i+windowSize] = std::max(suffixArr[i-1+windowSize], inputWaveform[i]);
+        }
     }
 
-    for (size_t i=N+paddingSize; i>0; --i) {
-        if      (i > N)                        continue;  // Compensate for divisibility padding (must be -inf)
-        else if (i % fStructuringElement == 0) suffixArr[i+windowSize-1] = inputWaveform[i-1];
-        else                                   suffixArr[i+windowSize-1] = std::max(suffixArr[i+windowSize], inputWaveform[i-1]);
+    int kint = (int) fStructuringElement;
+    // h_x
+
+    for (int i=N-1; i>-1; --i) {
+        if ((i+1) % kint == 0) {
+            prefixArr[i+windowSize] = inputWaveform[i];
+        } 
+        else if ((i+1) % kint != 0) {
+            prefixArr[i+windowSize] = std::max(prefixArr[i+1+windowSize], inputWaveform[i]);
+        }
+        else {
+            continue;
+        }
     }
 
     int prefixIndex = 0;
     int suffixIndex = 0;
 
-    for (size_t i=windowSize; i<N+windowSize; ++i) {
-        prefixIndex    = i + windowSize;
-        suffixIndex    = i - windowSize;
-        dilationVec[i-windowSize] = std::max(prefixArr[prefixIndex],suffixArr[suffixIndex]);
+    for (size_t i=0; i<N; ++i) {
+        suffixIndex = i + 2 * windowSize;
+        prefixIndex = i;
+        dilationVec[i] = std::max(prefixArr[prefixIndex], suffixArr[suffixIndex]);
     }
-
-
     return;
 }
 
@@ -216,27 +247,43 @@ void Erosion1D::operator()(const Waveform<bool>& inputWaveform,
     }
 
     // Compute Prefix and Suffix Buffers
-    for (size_t i=0; i<N+paddingSize; ++i) {
-        if (i % fStructuringElement == 0) prefixArr[i+windowSize] = inputWaveform[i];
-        else if ((i % fStructuringElement == 0) && (i < N)) {
-          prefixArr[i+windowSize] = prefixArr[i+windowSize-1] && inputWaveform[i];
+    for (size_t i=0; i<N; ++i) {
+        if (i > N) {
+        // Compensate for divisibility padding (must be -inf)
+            continue;
         }
-        else continue;
+        else if (i % fStructuringElement == 0) {
+            suffixArr[i+windowSize] = inputWaveform[i];
+        } 
+        else {
+            suffixArr[i+windowSize] = (suffixArr[i-1+windowSize] && inputWaveform[i]);
+        }
     }
 
-    for (size_t i=N+paddingSize; i>0; --i) {
-        if (i > N)                             continue; // Compensate for divisibility padding (must be -inf)
-        else if (i % fStructuringElement == 0) suffixArr[i+windowSize-1] = inputWaveform[i-1];
-        else                                   suffixArr[i+windowSize-1] = suffixArr[i+windowSize] && inputWaveform[i-1];
+    // Compute Prefix and Suffix Buffers
+    int kint = (int) fStructuringElement;
+
+    // h_x
+
+    for (int i=N-1; i>-1; --i) {
+        if ((i+1) % kint == 0) {
+            prefixArr[i+windowSize] = inputWaveform[i];
+        } 
+        else if ((i+1) % kint != 0) {
+            prefixArr[i+windowSize] = (prefixArr[i+1+windowSize] && inputWaveform[i]);
+        }
+        else {
+            continue;
+        }
     }
 
     int prefixIndex = 0;
     int suffixIndex = 0;
 
-    for (size_t i=windowSize; i<N+windowSize; ++i) {
-        prefixIndex = i + windowSize;
-        suffixIndex = i - windowSize;
-        erosionVec[i-windowSize] = prefixArr[prefixIndex] && suffixArr[suffixIndex];
+    for (size_t i=0; i<N; ++i) {
+        suffixIndex = i + 2 * windowSize;
+        prefixIndex = i;
+        erosionVec[i] = (prefixArr[prefixIndex] && suffixArr[suffixIndex]);
     }
 
     return;
@@ -297,27 +344,42 @@ template <typename T> void icarus_signal_processing::Erosion1D::getErosion(const
     }
 
     // Compute Prefix and Suffix Buffers
-    for (size_t i=0; i<N+paddingSize; ++i) {
-        if (i % fStructuringElement == 0) prefixArr[i+windowSize] = inputWaveform[i];
-        else if ((i % fStructuringElement == 0) && (i < N)) {
-          prefixArr[i+windowSize] = std::min(prefixArr[i+windowSize-1], inputWaveform[i]);
+    for (size_t i=0; i<N; ++i) {
+
+        if (i > N) {
+            // Compensate for divisibility padding (must be -inf)
+            continue;
         }
-        else continue;
+        else if (i % fStructuringElement == 0) {
+            suffixArr[i+windowSize] = inputWaveform[i];
+        } 
+        else {
+            suffixArr[i+windowSize] = std::min(suffixArr[i-1+windowSize], inputWaveform[i]);
+        }
     }
 
-    for (size_t i=N+paddingSize; i>0; --i) {
-        if (i > N)                             continue; // Compensate for divisibility padding (must be -inf)
-        else if (i % fStructuringElement == 0) suffixArr[i+windowSize-1] = inputWaveform[i-1];
-        else                                   suffixArr[i+windowSize-1] = std::min(suffixArr[i+windowSize], inputWaveform[i-1]);
+    int kint = (int) fStructuringElement;
+    // h_x
+
+    for (int i=N-1; i>-1; --i) {
+        if ((i+1) % kint == 0) {
+            prefixArr[i+windowSize] = inputWaveform[i];
+        } 
+        else if ((i+1) % kint != 0) {
+            prefixArr[i+windowSize] = std::min(prefixArr[i+1+windowSize], inputWaveform[i]);
+        }
+        else {
+            continue;
+        }
     }
 
     int prefixIndex = 0;
     int suffixIndex = 0;
 
-    for (size_t i=windowSize; i<N+windowSize; ++i) {
-        prefixIndex = i + windowSize;
-        suffixIndex = i - windowSize;
-        erosionVec[i-windowSize] = std::min(prefixArr[prefixIndex],suffixArr[suffixIndex]);
+    for (size_t i=0; i<N; ++i) {
+        suffixIndex = i + 2 * windowSize;
+        prefixIndex = i;
+        erosionVec[i] = std::min(prefixArr[prefixIndex], suffixArr[suffixIndex]);
     }
 
     return;
