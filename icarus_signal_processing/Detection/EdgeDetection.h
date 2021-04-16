@@ -150,8 +150,8 @@ namespace icarus_signal_processing
 
     void HysteresisThresholdingFast(
         const Array2D<float> &doneNMS2D,
-        float lowThreshold,
-        float highThreshold,
+        const float lowThreshold,
+        const float highThreshold,
         Array2D<bool>& outputROI) const;
 
     void Canny(
