@@ -48,22 +48,22 @@ template <typename T> void icarus_signal_processing::Dilation2D::getDilation2D(t
 
     for (size_t i=0; i<numChannels; ++i) dilation2D[i].resize(nTicks);
 
-    icarus_signal_processing::Dilation1D dilation1D(fStructuringElementX);
+    icarus_signal_processing::Dilation1D dilation1DRow(fStructuringElementX);
 
-    for (size_t i=0; i<numChannels; ++i) dilation1D(*(inputWaveform2D+i), dilation2D[i]);
+    for (size_t i=0; i<numChannels; ++i) dilation1DRow(*(inputWaveform2D+i), dilation2D[i]);
 
+    icarus_signal_processing::Dilation1D dilation1DCol(fStructuringElementY);
+    Waveform<T>                          column(numChannels);
+    Waveform<T>                          columnOut(numChannels);
+    
     for (size_t j=0; j<nTicks; ++j) 
     {
-        Waveform<float> column(numChannels);
-        Waveform<float> columnOut(numChannels);
-    
         for (size_t i=0; i<numChannels; ++i) column[i] = dilation2D[i][j];
 
-        dilation1D(column, columnOut);
+        dilation1DCol(column, columnOut);
     
         for (size_t i=0; i<numChannels; ++i) dilation2D[i][j] = columnOut[i];
     }
-
 
     return;
 }
@@ -91,17 +91,18 @@ template <typename T> void icarus_signal_processing::Erosion2D::getErosion2D(typ
     for (size_t i=0; i<numChannels; ++i) erosion2D[i].resize(nTicks);
 
 
-    icarus_signal_processing::Erosion1D erosion1D(fStructuringElementX);
+    icarus_signal_processing::Erosion1D erosion1Drow(fStructuringElementX);
 
-    for (size_t i=0; i<numChannels; ++i) erosion1D(*(inputWaveform2D+i), erosion2D[i]);
+    for (size_t i=0; i<numChannels; ++i) erosion1Drow(*(inputWaveform2D+i), erosion2D[i]);
+
+    icarus_signal_processing::Erosion1D erosion1Dcol(fStructuringElementY);
+    Waveform<T> column(numChannels);
+    Waveform<T> columnOut(numChannels);
 
     for (size_t j=0; j<nTicks; ++j) {
-        Waveform<float> column(numChannels);
-        Waveform<float> columnOut(numChannels);
-
         for (size_t i=0; i<numChannels; ++i) column[i] = erosion2D[i][j];
 
-        erosion1D(column, columnOut);
+        erosion1Dcol(column, columnOut);
 
         for (size_t i=0; i<numChannels; ++i) erosion2D[i][j] = columnOut[i];
     }
