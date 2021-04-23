@@ -31,10 +31,11 @@ namespace icarus_signal_processing {
     public:
       
       /// Default constructor
-      DisjointSetForest(const unsigned int size) {
+      DisjointSetForest(const unsigned int size, const int rootIndex=0) {
         parent.resize(size+1);
         rank.resize(size+1);
         this->size = size+1;
+        this->rootIndex = rootIndex;
       }
       
       /// Default destructor
@@ -43,6 +44,7 @@ namespace icarus_signal_processing {
       std::vector<int> parent;
       std::vector<int> rank;
       size_t size = 0;
+      int rootIndex = 0;
 
       void MakeSet();
 
