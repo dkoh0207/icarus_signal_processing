@@ -13,13 +13,13 @@ void icarus_signal_processing::EdgeDetection::Convolve2D(const Array2D<float> &i
   // Input kernel must be normalized.
 
   int numChannels = input2D.size();
-  int numTicks = input2D.at(0).size();
+  int numTicks = input2D[0].size();
 
   int kernelX = kernel.size() / 2;
-  int kernelY = kernel.at(0).size() / 2;
+  int kernelY = kernel[0].size() / 2;
 
   int kernelWidth = kernel.size();
-  int kernelHeight = kernel.at(0).size();
+  int kernelHeight = kernel[0].size();
 
   for (int i = 0; i < numChannels; ++i)
   {
@@ -101,7 +101,7 @@ void icarus_signal_processing::EdgeDetection::Sobel(const Array2D<float> &input2
                                                     Array2D<float> &direction) const
 {
   int numChannels = input2D.size();
-  int numTicks = input2D.at(0).size();
+  int numTicks = input2D[0].size();
 
   SobelX(input2D, sobelX);
   SobelY(input2D, sobelY);
@@ -127,7 +127,7 @@ void icarus_signal_processing::EdgeDetection::SepSobel(const Array2D<float> &inp
                                                     Array2D<float> &direction) const
 {
   int numChannels = input2D.size();
-  int numTicks = input2D.at(0).size();
+  int numTicks = input2D[0].size();
 
   SepSobelX(input2D, sobelX);
   SepSobelY(input2D, sobelY);
@@ -150,7 +150,7 @@ void icarus_signal_processing::EdgeDetection::SepSobelX(const Array2D<float> &in
                                                         Array2D<float> &gradient) const
 {
   const int numChannels = input2D.size();
-  const int numTicks = input2D.at(0).size();
+  const int numTicks = input2D[0].size();
 
   for (int i = 0; i < numChannels; ++i)
   {
@@ -176,7 +176,7 @@ void icarus_signal_processing::EdgeDetection::SepSobelY(const Array2D<float> &in
                                                         Array2D<float> &gradient) const
 {
   const int numChannels = input2D.size();
-  const int numTicks = input2D.at(0).size();
+  const int numTicks = input2D[0].size();
 
   for (int i = 0; i < numChannels; ++i)
   {
@@ -236,7 +236,7 @@ void icarus_signal_processing::EdgeDetection::LSDGradX(const Array2D<float> &inp
   // Input kernel must be normalized.
 
   int numChannels = input2D.size();
-  int numTicks = input2D.at(0).size();
+  int numTicks = input2D[0].size();
 
   for (int i = 0; i < numChannels - 1; ++i)
   {
@@ -269,7 +269,7 @@ void icarus_signal_processing::EdgeDetection::LSDGradY(const Array2D<float> &inp
   // Input kernel must be normalized.
 
   int numChannels = input2D.size();
-  int numTicks = input2D.at(0).size();
+  int numTicks = input2D[0].size();
 
   for (int i = 0; i < numChannels - 1; ++i)
   {
@@ -303,7 +303,7 @@ void icarus_signal_processing::EdgeDetection::LSDGrad(const Array2D<float> &inpu
                                                       Array2D<float> &direction) const
 {
   int numChannels = input2D.size();
-  int numTicks = input2D.at(0).size();
+  int numTicks = input2D[0].size();
 
   LSDGradX(input2D, gradX);
   LSDGradY(input2D, gradY);
@@ -327,7 +327,7 @@ void icarus_signal_processing::EdgeDetection::EdgeNMS(const Array2D<float> &grad
                                                       Array2D<float> &output2D) const
 {
   int numChannels = gradient2D.size();
-  int numTicks = gradient2D.at(0).size();
+  int numTicks = gradient2D[0].size();
 
   // Compensate for boundary
   for (int i = 1; i < numChannels - 1; ++i)
@@ -387,7 +387,7 @@ void icarus_signal_processing::EdgeDetection::EdgeNMSInterpolation(const Array2D
                                                                    Array2D<float> &output2D) const
 {
     int numChannels = gradient2D.size();
-    int numTicks = gradient2D.at(0).size();
+    int numTicks = gradient2D[0].size();
 
     // Implementation was partly adapted from:
     // https://github.com/JustinLiang/ComputerVisionProjects/blob/master/CannyEdgeDetector/CannyEdgeDetector.m
@@ -481,7 +481,7 @@ void icarus_signal_processing::EdgeDetection::DoubleThresholding(const Array2D<f
                                                                  float                 highThreshold) const
 {
     int numChannels = doneNMS2D.size();
-    int numTicks = doneNMS2D.at(0).size();
+    int numTicks = doneNMS2D[0].size();
 
     // Implementation was partly adapted from:
     // https://github.com/JustinLiang/ComputerVisionProjects/blob/master/CannyEdgeDetector/CannyEdgeDetector.m
@@ -525,7 +525,7 @@ void icarus_signal_processing::EdgeDetection::HysteresisThresholding(const Array
                                                                      Array2D<bool>          &output2D) const
 {
     int numChannels = binary2D.size();
-    int numTicks = binary2D.at(0).size();
+    int numTicks = binary2D[0].size();
 
     bool converged = false;
 
@@ -617,7 +617,7 @@ void icarus_signal_processing::EdgeDetection::HysteresisThresholdingFast(const A
   This Hysteresis Thresholding includes double thresholding, and performs both in one pass. 
   */
     const int numChannels = doneNMS2D.size();
-    const int numTicks = doneNMS2D.at(0).size();
+    const int numTicks = doneNMS2D[0].size();
 
     const int forestSize = numChannels * numTicks;
 
@@ -738,7 +738,7 @@ void icarus_signal_processing::EdgeDetection::Canny(const Array2D<float> &waveLe
   edge-preserving bilateral filtering.
   */
     int numChannels = waveLessCoherent.size();
-    int numTicks = waveLessCoherent.at(0).size();
+    int numTicks = waveLessCoherent[0].size();
 
     icarus_signal_processing::BilateralFilters filter;
 
@@ -843,7 +843,7 @@ void icarus_signal_processing::EdgeDetection::gradientRegionGrow(const Array2D<f
     assert(tolerance > 0);
     assert(regionID > 0);
     int numChannels = direction.size();
-    int numTicks = direction.at(0).size();
+    int numTicks = direction[0].size();
 
     float Sx = 0.0;
     float Sy = 0.0;
@@ -1003,10 +1003,10 @@ void icarus_signal_processing::EdgeDetection::getDilation2D(const std::vector<st
                                                             std::vector<std::vector<bool> >&       dilation2D) const
 {
     size_t numChannels = waveform2D.size();
-    size_t nTicks = waveform2D.at(0).size();
+    size_t nTicks = waveform2D[0].size();
 
     assert(dilation2D.size() == numChannels);
-    assert(dilation2D.at(0).size() == nTicks);
+    assert(dilation2D[0].size() == nTicks);
 
     for (size_t i = 0; i < numChannels; ++i)
     {
