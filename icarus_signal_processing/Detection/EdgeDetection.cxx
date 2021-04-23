@@ -6,6 +6,13 @@
 #include "icarus_signal_processing/Filters/BilateralFilters.h"
 #include "icarus_signal_processing/Filters/MiscUtils.h"
 
+
+long icarus_signal_processing::EdgeDetection::CantorEnum(const int &x, const int &y) const
+{
+  int n = ((x + y) * (x + y + 1) / 2) + y;
+  return n;
+}
+
 void icarus_signal_processing::EdgeDetection::Convolve2D(const Array2D<float> &input2D,
                                                          Array2D<float> &output2D,
                                                          const Array2D<float> &kernel) const
@@ -621,7 +628,7 @@ void icarus_signal_processing::EdgeDetection::HysteresisThresholdingFast(const A
 
     const int forestSize = numChannels * numTicks;
 
-    DisjointSetForest forest(forestSize);
+    DisjointSetForest forest(forestSize, forestSize);
     forest.MakeSet();
 
     // 1. Initialize Strong Edges
@@ -718,6 +725,120 @@ void icarus_signal_processing::EdgeDetection::HysteresisThresholdingFast(const A
 
         else
             outputROI[row][col] = false;
+    }
+    return;
+}
+
+void icarus_signal_processing::EdgeDetection::SparseHysteresisThresholding(const Array2D<float> &doneNMS2D,
+                                                                           const float lowThreshold,
+                                                                           const float highThreshold,
+                                                                           Array2D<bool> &outputROI) const
+{
+    /*
+  Hysteresis Thresholding using Disjoint Set Forest Data Structure and Union-Find
+
+  Reference:
+  Artur Nowakowski, Wladyslaw Skarbek, "Fast computation of thresholding hysteresis for edge detection," 
+  Proc. SPIE 6159, Photonics Applications in Astronomy, Communications, Industry, and 
+  High-Energy Physics Experiments IV, 615948 (26 April 2006); https://doi.org/10.1117/12.674959
+
+  This Hysteresis Thresholding includes double thresholding, and performs both in one pass. 
+  */
+    const int numChannels = doneNMS2D.size();
+    const int numTicks = doneNMS2D.at(0).size();
+
+    std::unordered_map<long, EdgeCandidate> edges;
+
+    // 1. Initialize Strong Edges
+
+    int count_id = 1;
+    // First Pass
+    for (int i=0; i<numChannels; ++i) 
+    {
+        for (int j=0; j<numTicks; ++j)
+        {
+            if (doneNMS2D[i][j] >= highThreshold) 
+            {
+              // if edge is a strong edge, assign to root node 
+              // ID of 0 is reserved for root note reference
+              EdgeCandidate strongEdge(i, j, 0, true);
+              long key = CantorEnum(i, j);
+              edges.emplace(std::make_pair(key, strongEdge));
+              count_id++;
+            }
+            else if ( (doneNMS2D[i][j] < highThreshold) && 
+                      (doneNMS2D[i][j] >= lowThreshold)) 
+            {
+              EdgeCandidate weakEdge(i, j, count_id, false);
+              long key = CantorEnum(i, j);
+              edges.emplace(std::make_pair(key, weakEdge));
+              count_id++;
+            }
+            else continue;
+        }
+    }
+
+    const int forestSize = edges.size();
+    DisjointSetForest forest(forestSize);
+    forest.MakeSet();
+
+    // Assign all strong edge to root node.
+    for (auto& node : edges) 
+    {
+        EdgeCandidate &edge = node.second;
+        int i = edge.row;
+        int j = edge.col;
+
+        int lowerBoundx = std::max(i-1, 0);
+        int upperBoundx = std::min(i+2, (int) numChannels);
+        int lowerBoundy = std::max(j-1, 0);
+        int upperBoundy = std::min(j+2, (int) numTicks);
+
+        if (edge.edgeType)
+        {
+            if (forest.Find(edge.id) == edge.id) 
+            {
+              // Assign strong edge to root node "0"
+              forest.parent[edge.id] = 0;
+            }
+             // Handle neighbors
+            for (int k=lowerBoundx; k<upperBoundx; ++k) 
+            {
+                for (int l=lowerBoundy; l<upperBoundy; ++l) 
+                {
+                    const float &grad = doneNMS2D[k][l];
+                    if (grad >= lowThreshold) 
+                    {
+                            long key = CantorEnum(k, l);
+                            forest.Union(edges[key].id, edge.id);
+                    }
+                }
+            }
+        }
+        else // Process Weak Edges 
+        {
+            for (int k=lowerBoundx; k<upperBoundx; ++k) 
+            {
+                for (int l=lowerBoundy; l<upperBoundy; ++l) 
+                {
+                    const float &grad = doneNMS2D[k][l];
+                    if (grad >= lowThreshold) 
+                    {
+                      long key = CantorEnum(k, l);
+                      forest.Union(edges[key].id, edge.id);
+                    }
+                }
+            }
+        }
+    }
+
+    for (auto& node: edges) 
+    {
+        EdgeCandidate &edge = node.second;
+        int rep = forest.Find(edge.id);
+        const int &row = edge.row;
+        const int &col = edge.col;
+        if (rep == 0) outputROI[row][col] = true;
     }
     return;
 }

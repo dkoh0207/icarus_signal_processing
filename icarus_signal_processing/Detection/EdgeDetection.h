@@ -25,6 +25,7 @@
 #include <cmath>
 #include <assert.h>
 #include <queue>
+#include <unordered_map>
 
 #include "DisjointSetForest.h"
 
@@ -40,6 +41,26 @@ namespace icarus_signal_processing
   template <class T>
   using Array2D = std::vector<std::vector<T>>;
 
+  struct EdgeCandidate {
+    int row;
+    int col;
+    int id;
+    bool edgeType;
+
+    EdgeCandidate() = default;
+
+    EdgeCandidate(const int row, 
+                  const int col,
+                  const int id,
+                  const bool edgeType)
+    {
+      this->row = row;
+      this->col = col;
+      this->id = id;
+      this->edgeType = edgeType;
+    }
+  };
+
   class EdgeDetection
   {
 
@@ -48,6 +69,8 @@ namespace icarus_signal_processing
     EdgeDetection() {}
 
     // 2D convolution Sobel Filtering
+
+    long CantorEnum(const int &x, const int &y) const;
 
     void Convolve2D(
         const Array2D<float> &input2D,
@@ -149,6 +172,12 @@ namespace icarus_signal_processing
         Array2D<bool> &output2D) const;
 
     void HysteresisThresholdingFast(
+        const Array2D<float> &doneNMS2D,
+        const float lowThreshold,
+        const float highThreshold,
+        Array2D<bool>& outputROI) const;
+
+    void SparseHysteresisThresholding(
         const Array2D<float> &doneNMS2D,
         const float lowThreshold,
         const float highThreshold,
