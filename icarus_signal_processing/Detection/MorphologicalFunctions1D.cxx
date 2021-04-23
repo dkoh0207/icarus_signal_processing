@@ -237,13 +237,13 @@ void Erosion1D::operator()(const Waveform<bool>& inputWaveform,
 
     // Padding Operations on Buffers
     for (size_t i=0; i<windowSize; ++i) {
-        suffixArr[i] = false;
-        prefixArr[i] = false;
+        suffixArr[i] = true;
+        prefixArr[i] = true;
     }
 
     for (size_t i=N+windowSize; i<bufferSize; ++i) {
-        suffixArr[i] = false;
-        prefixArr[i] = false;
+        suffixArr[i] = true;
+        prefixArr[i] = true;
     }
 
     // Compute Prefix and Suffix Buffers
@@ -321,7 +321,7 @@ template <typename T> void icarus_signal_processing::Erosion1D::getErosion(const
 
     if (N <= fStructuringElement) 
     {
-        std::cout << "Dilation1D: Input array size " << N << " must be greater than structuring element size " << fStructuringElement << std::endl;
+        std::cout << "Erosion1D: Input array size " << N << " must be greater than structuring element size " << fStructuringElement << std::endl;
         return;
     }
 
@@ -334,13 +334,13 @@ template <typename T> void icarus_signal_processing::Erosion1D::getErosion(const
 
     // Padding Operations on Buffers
     for (size_t i=0; i<windowSize; ++i) {
-        suffixArr[i] = std::numeric_limits<T>::min();
-        prefixArr[i] = std::numeric_limits<T>::min();
+        suffixArr[i] = std::numeric_limits<T>::max();
+        prefixArr[i] = std::numeric_limits<T>::max();
     }
 
     for (size_t i=N+windowSize; i<bufferSize; ++i) {
-        suffixArr[i] = std::numeric_limits<T>::min();
-        prefixArr[i] = std::numeric_limits<T>::min();
+        suffixArr[i] = std::numeric_limits<T>::max();
+        prefixArr[i] = std::numeric_limits<T>::max();
     }
 
     // Compute Prefix and Suffix Buffers

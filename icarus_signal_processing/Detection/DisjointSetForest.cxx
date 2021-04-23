@@ -37,7 +37,7 @@ void icarus_signal_processing::DisjointSetForest::MakeSet(const std::vector<int>
     }
 
     for (const int& x : strongEdges) {
-        parent[x] = root;
+        parent[x] = rootIndex;
     }
     return;
 }
@@ -49,9 +49,9 @@ void icarus_signal_processing::DisjointSetForest::Union(const int x, const int y
 
     if (repX == repY) return;
 
-    else if (repX == (int) (size-1)) parent[repY] = repX;
+    else if (repX == rootIndex) parent[repY] = repX;
 
-    else if (repY == (int) (size-1)) parent[repX] = repY;
+    else if (repY == rootIndex) parent[repX] = repY;
 
     else {
         int rankX = rank[repX];
