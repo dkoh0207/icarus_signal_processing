@@ -1,6 +1,6 @@
 
-art_make( 
-          LIB_LIBRARIES 
+cet_make( 
+          LIBRARIES 
                           icarus_signal_processing_Filters
                           ${ROOT_GEOM}
                           ${ROOT_XMLIO}
