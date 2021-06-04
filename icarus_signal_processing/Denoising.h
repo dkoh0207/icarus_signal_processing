@@ -227,6 +227,44 @@ private:
 };
 
 
+class Denoiser2D_RestrictedHough : virtual public IDenoiser2D, public Denoising {
+public:
+
+    Denoiser2D_RestrictedHough(const IMorphologicalFunctions2D*,    // Filter Functions
+                               const VectorFloat&,                  // Thresholds
+                               unsigned int,                        // Coherent Noise Grouping (# of Channels)
+                               unsigned int,                        // Channel grouping offset from 0 to channel #
+                               unsigned int,                        // Morphological filter window
+                               float,                               // Maximum angular deviation from isochronous line.
+                               unsigned int thetaSteps=100,         // number of angular spacings (100 is enough usually)
+                               unsigned int houghThreshold=500,     // Threshold for determining lines in hough space
+                               bool outputStats=false);             // If on, activate timing statistics
+
+
+    void operator()(ArrayFloat::iterator,
+                    ArrayFloat::const_iterator,
+                    ArrayFloat::iterator,
+                    ArrayFloat::iterator,
+                    ArrayBool::iterator,
+                    ArrayBool::iterator,
+                    ArrayFloat::iterator,
+                    const unsigned int ) const override;
+
+
+private:
+    const IMorphologicalFunctions2D* fFilterFunction;
+    const VectorFloat&               fThresholdVec;
+    unsigned int                     fCoherentNoiseGrouping;
+    unsigned int                     fCoherentNoiseGroupingOffset;
+    unsigned int                     fMorphologicalWindow;
+    float                            fMaxAngleDev;
+    unsigned int                     fThetaSteps;
+    int                              fHoughThreshold;
+    bool fOutputStats;
+
+};
+
+
 }
 
 #endif

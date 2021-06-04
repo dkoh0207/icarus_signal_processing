@@ -7,9 +7,12 @@ OSNAME          = $(shell uname -s)
 HOST            = $(shell uname -n)
 OSNAMEMODE      = $(OSNAME)
 
+INCFLAGS := -I.
+
 include $(MYSW_DIR)/Makefile/Makefile.${OSNAME}
 
-SUBDIRS := icarus_signal_processing
+SUBDIRS := ./icarus_signal_processing ./icarus_signal_processing/Filters ./icarus_signal_processing/Detection
+CXXFLAGS+=$(INCFLAGS)
 
 .phony: all clean
 

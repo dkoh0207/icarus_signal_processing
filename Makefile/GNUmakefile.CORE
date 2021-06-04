@@ -13,7 +13,6 @@ $(shell mkdir -p $(MYSW_LIBDIR))
 $(shell mkdir -p $(PACKAGE_BUILDDIR))
 $(shell mkdir -p $(PACKAGE_INCDIR))
 
-
 DICT    = $(PACKAGE_BUILDDIR)/$(NAME)Dict
 OBJECTS = $(addprefix $(PACKAGE_BUILDDIR)/, $(SOURCES:.cxx=.o))
 
@@ -35,6 +34,12 @@ $(DICT).o: $(DICT).cxx
 # root class dictionary
 $(DICT).cxx: $(HEADERS) LinkDef.h
 	@echo '<< generating dict >>'
+	@echo 'INCFLAGS = $(INCFLAGS)'
+	@echo 'FMWK_HEADERS = $(FMWK_HEADERS)'
+	@echo 'SOURCES = $(SOURCES)'
+	@echo 'HEADERS = $(HEADERS)'
+	@echo 'MYSW_DIR = $(MYSW_DIR)'
+	@echo 'CXXFLAGS = $(CXXFLAGS)'
 	@rootcling -f $(DICT).cxx -s $(MYSW_LIBDIR)/$(SHLIB) -rml $(SHLIB) -rmf $(MYSW_LIBDIR)/$(ROOTMAP) $(CINTFLAGS) -c $(INCFLAGS) $(HEADERS) LinkDef.h	
 
 # rule for making shareable library

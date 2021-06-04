@@ -35,6 +35,12 @@ namespace icarus_signal_processing {
     int y;
   };
 
+  struct LabeledPoint {
+    int x;
+    int y;
+    int id;
+  };
+
   struct Line {
     int x0;
     int y0;
@@ -55,6 +61,50 @@ namespace icarus_signal_processing {
                           Array2D<int>& accumulator2D,
                           const unsigned int thetaSteps = 360) const;
 
+      int CartesianHoughTransform(const Array2D<bool>& binary2D,
+                                  Array2D<int>& accumulator2D,
+                                  const float maxAngleDev=20.0,
+                                  const int thetaSteps=100) const;
+
+      void simpleFastNMS(
+        const Array2D<float>& accumulator2D,
+        std::vector<int>& rhoIndex,
+        std::vector<int>& thetaIndex,
+        const int threshold,
+        const int sx,
+        const int sy) const;
+
+      void simpleFastNMS(
+        const Array2D<int>& accumulator2D,
+        std::vector<int>& rhoIndex,
+        std::vector<int>& thetaIndex,
+        const int threshold,
+        const int sx,
+        const int sy) const;
+
+      void simpleFastNMS(
+        const Array2D<long>& accumulator2D,
+        std::vector<int>& rhoIndex,
+        std::vector<int>& thetaIndex,
+        const int threshold,
+        const int sx,
+        const int sy) const;
+
+      template <typename T>
+      void simpleFastNMS(
+        const Array2D<T>& accumulator2D,
+        std::vector<int>& rhoIndex,
+        std::vector<int>& thetaIndex,
+        const T threshold,
+        const int sx,
+        const int sy) const;
+
+      void drawLine2(
+        Array2D<bool>& newSelectVals,
+        const int &interceptIndex,
+        const float &theta,
+        const int &padding) const;
+
       
       void FindPeaksNMS(const Array2D<int>& accumulator2D,
                         std::vector<int>& rhoIndex,
@@ -74,6 +124,11 @@ namespace icarus_signal_processing {
                     const Line line,
                     const unsigned int dilationX = 7,
                     const unsigned int dilationY = 20) const;
+
+      void drawLine2(Array2D<bool>& newSelectVals,
+                     const int &interceptIndex,
+                     const float &theta,
+                     const int &padding) const;
 
       void refineSelectVals(const Array2D<bool>& selectVals,
                             Array2D<bool>& refinedSelectVals,
