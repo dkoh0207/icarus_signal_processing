@@ -24,13 +24,16 @@ void icarus_signal_processing::DisjointSetForest::MakeSet()
 
 void icarus_signal_processing::DisjointSetForest::MakeSet(const std::vector<int>& strongEdges)
 {
-    if (strongEdges.size() < 1) {
+    if (strongEdges.empty()) {
         std::string msg = "When constructing disjoint set parent with list of root "
                           "set members, list must contain at least one entry. Returning";
         std::cout << msg << std::endl;
         return;
     }
-    int root = strongEdges[0];
+//******
+// Was this meant to be used?
+//    int root = strongEdges[0];
+//******
 
     for (int i=0; i< (int) size; ++i) {
         parent[i] = i;

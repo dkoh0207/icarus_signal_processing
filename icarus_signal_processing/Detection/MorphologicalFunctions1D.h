@@ -38,16 +38,16 @@ public:
    *  @brief  Virtual Destructor
    */
    virtual ~IMorphologicalFunctions1D() noexcept = default;
- 
+
+   //@{ 
    /**
    *  @brief Interface functions which provided templated access
-   *
-   *  @param fragment            The artdaq fragment to process
    */
    virtual void operator()(const Waveform<bool>&,   Waveform<bool>&)   const = 0;
    virtual void operator()(const Waveform<short>&,  Waveform<short>&)  const = 0;
    virtual void operator()(const Waveform<float>&,  Waveform<float>&)  const = 0;
    virtual void operator()(const Waveform<double>&, Waveform<double>&) const = 0;
+   //@}
 };
 
 using FilterFunctionVec = std::vector<std::unique_ptr<IMorphologicalFunctions1D>>; 
