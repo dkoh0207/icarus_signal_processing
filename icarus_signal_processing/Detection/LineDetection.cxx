@@ -81,9 +81,9 @@ int icarus_signal_processing::LineDetection::CartesianHoughTransform(
   std::vector<float> slopeTab(thetaSteps * 2);
   for (int i=0; i< thetaSteps; ++i) {
     // 0 ~ maxAngle
-    slopeTab.at(i * 2) = (float) std::tan(i * dtheta);
+    slopeTab[i * 2] = (float) std::tan(i * dtheta);
     // 0 ~ -maxAngle
-    slopeTab.at(i * 2+1) = (float) -std::tan(i * dtheta);
+    slopeTab[i * 2+1] = (float) -std::tan(i * dtheta);
   }
 
   int padding = ((int) numChannels * std::tan(maxAngle) + 1);
@@ -100,14 +100,12 @@ int icarus_signal_processing::LineDetection::CartesianHoughTransform(
         // 0 ~ -maxAngle
         for (int m=1; m<thetaSteps; ++m) {
           const int intercept = (int) (slopeTab[2*(thetaSteps-m)+1] * ((float) i));
-          accumulator2D.at(m).at(
-            padding + j - intercept) += 1;
+          accumulator2D[m][padding + j - intercept] += 1;
         }
         for (int m=0; m<thetaSteps; ++m) {
           // Process positive angles
           const int intercept = (int) (slopeTab[2*m] * ((float) i));
-          accumulator2D.at(thetaSteps + m).at(
-            padding + j - intercept) += 1;
+          accumulator2D[thetaSteps + m][padding + j - intercept] += 1;
         }
       }
     }
@@ -532,7 +530,7 @@ void icarus_signal_processing::LineDetection::drawLine2(
   float slopeAbs = std::abs(slope);
 
   while ( (ix < numChannels) && (iy < numTicks) && (iy >= 0) ) {
-    newSelectVals.at(ix).at(iy) = true;
+    newSelectVals[ix][iy] = true;
     error += slopeAbs;
     ix++; 
     if (error > 0.5) {
