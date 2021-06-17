@@ -2,6 +2,7 @@
 #define __SIGPROC_TOOLS_DENOISING_CXX__
 
 #include "Denoising.h"
+#include "MorphologicalFunctions2D.h"
 #include "icarus_signal_processing/Detection/LineDetection.h"
 #include "WaveformTools.h"
 
@@ -508,6 +509,108 @@ void icarus_signal_processing::Denoiser2D_Hough::operator()(ArrayFloat::iterator
 
     for(size_t channelIdx = 0; channelIdx < numChannels; channelIdx++)
         *(selectValsItr + channelIdx) = localSelectVals[channelIdx];
+
+    std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point noiseStart = selStop;
+
+    removeCoherentNoise(waveLessCoherentItr, filteredWaveformsItr, intrinsicRMSItr, selectValsItr, correctedMediansItr, numChannels, fCoherentNoiseGrouping, fCoherentNoiseGrouping);
+
+    std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point funcStopTime = std::chrono::high_resolution_clock::now();
+  
+    std::chrono::duration<double> funcTime   = std::chrono::duration_cast<std::chrono::duration<double>>(funcStopTime - funcStartTime);
+    std::chrono::duration<double> morphTime  = std::chrono::duration_cast<std::chrono::duration<double>>(morphStop - morphStart);
+    std::chrono::duration<double> selTime    = std::chrono::duration_cast<std::chrono::duration<double>>(selStop - selStart);
+    std::chrono::duration<double> noiseTime  = std::chrono::duration_cast<std::chrono::duration<double>>(noiseStop - noiseStart);
+
+    if (fOutputStats)
+    {
+        std::cout << "*** Denoising 2D ***  - # channels: " << numChannels << ", ticks: " << nTicks << ", groups: " << numChannels / fCoherentNoiseGrouping << std::endl;
+        std::cout << "                      - morph: " << morphTime.count() << ", sel: " << selTime.count() << ", noise: " << noiseTime.count() << ", total: " << funcTime.count() << std::endl;
+    }
+
+    return;
+}
+
+icarus_signal_processing::Denoiser2D_RestrictedHough::Denoiser2D_RestrictedHough(const IMorphologicalFunctions2D* filterFunction,   // Filter function to apply for finding protected regions
+                                                                                 const VectorFloat&               thresholdVec,     // Threshold to apply
+                                                                                 unsigned int                     coherentGrouping, // Coherent noise grouping (# of channels)
+                                                                                 unsigned int                     groupingOffset,   // The collection and middle induction planes are shifted by 23 channels in the beginning.
+                                                                                 unsigned int                     morphWindow,      // Window for morphological filter
+                                                                                 float                            maxAngleDev,      // Maximum angular deviation from isochronous line
+                                                                                 unsigned int                     thetaSteps,       // Spacing of angular dimension of accumulator array
+                                                                                 unsigned int                     houghThreshold,   // 
+                                                                                 bool                             outputStats)      // If on will activate some timing statistics
+            : Denoising(outputStats), 
+              fFilterFunction(filterFunction),
+              fThresholdVec(thresholdVec),
+              fCoherentNoiseGrouping(coherentGrouping),
+              fCoherentNoiseGroupingOffset(groupingOffset),
+              fMorphologicalWindow(morphWindow),
+              fOutputStats(outputStats),
+              fMaxAngleDev(maxAngleDev),
+              fThetaSteps(thetaSteps),
+              fHoughThreshold(houghThreshold)
+{}
+
+void icarus_signal_processing::Denoiser2D_RestrictedHough::operator()(ArrayFloat::iterator             waveLessCoherentItr,
+                                                                      ArrayFloat::const_iterator       filteredWaveformsItr,
+                                                                      ArrayFloat::iterator             morphedWaveformsItr,
+                                                                      ArrayFloat::iterator             intrinsicRMSItr,
+                                                                      ArrayBool::iterator              selectValsItr,
+                                                                      ArrayBool::iterator              roiItr,
+                                                                      ArrayFloat::iterator             correctedMediansItr,
+                                                                      const unsigned int               numChannels) const
+{
+    auto nTicks  = filteredWaveformsItr->size();
+//    auto nGroups = numChannels / grouping;
+
+    std::chrono::high_resolution_clock::time_point funcStartTime = std::chrono::high_resolution_clock::now();
+
+    std::chrono::high_resolution_clock::time_point morphStart = funcStartTime;
+
+    (*fFilterFunction)(filteredWaveformsItr, numChannels, morphedWaveformsItr);
+
+    std::chrono::high_resolution_clock::time_point morphStop  = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point selStart = morphStop;
+
+    ArrayBool roughSelectVals(numChannels,VectorBool(nTicks));
+
+    // Rough protection regions from morphological thresholding
+    getSelectVals(morphedWaveformsItr, roughSelectVals.begin(), roiItr, fThresholdVec, numChannels, fCoherentNoiseGrouping, fMorphologicalWindow);
+
+    // Initialize accumulator array for restricted hough transform space.
+    ArrayBool localSelectVals(numChannels,VectorBool(nTicks));
+    ArrayInt accumulator2D;
+
+    // Vectors to store (i,j) coordinates of the new refined selectVals (signal protection region)
+    VectorInt interceptIndex;
+    VectorInt angleIndex;
+
+    LineDetection lineModule;
+
+    float maxAngle = (fMaxAngleDev / 180.0) * M_PI;
+    float dtheta = 2.0 * maxAngle / (2.0 * (float) fThetaSteps);
+
+    // Run a Cartesian Hough Transform instead of the usual polar form, since we only have to
+    // search over the restricted space of near-vertical track signals
+    int padding = lineModule.CartesianHoughTransform(roughSelectVals, accumulator2D, fMaxAngleDev, fThetaSteps);
+
+    // Non-maximal suppression gives the local maxima of the accumulator array
+    // Use 7 x 7 structuring element for NMS
+    lineModule.simpleFastNMS(accumulator2D, interceptIndex, angleIndex, fHoughThreshold, 7, 7);
+
+    // Draw Lines to new refined protection region array
+    for (int i = 0; i < interceptIndex.size(); ++i) {
+        float angle = ((float) angleIndex[i] - (float) fThetaSteps) * dtheta;
+        lineModule.drawLine2(localSelectVals, interceptIndex[i], angle, padding);
+    }
+
+    icarus_signal_processing::Dilation2D dilationFilter(7,7);
+    dilationFilter(localSelectVals.begin(), numChannels, roughSelectVals.begin()); // Store dilation in roughSelectVals
+
+    for(size_t channelIdx = 0; channelIdx < numChannels; channelIdx++)
+        *(selectValsItr + channelIdx) = roughSelectVals[channelIdx];
 
     std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point noiseStart = selStop;
