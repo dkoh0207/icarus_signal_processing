@@ -403,12 +403,12 @@ void icarus_signal_processing::Denoiser2D::operator()(ArrayFloat::iterator      
     std::chrono::high_resolution_clock::time_point morphStop  = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point selStart = morphStop;
 
-    getSelectVals(morphedWaveformsItr, selectValsItr, roiItr, fThresholdVec, numChannels, fCoherentNoiseGrouping, fMorphologicalWindow);
+//    getSelectVals(morphedWaveformsItr, selectValsItr, roiItr, fThresholdVec, numChannels, fCoherentNoiseGrouping, fMorphologicalWindow);
 
     std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point noiseStart = selStop;
 
-    removeCoherentNoise(waveLessCoherentItr, filteredWaveformsItr, intrinsicRMSItr, selectValsItr, correctedMediansItr, numChannels, fCoherentNoiseGrouping, fCoherentNoiseGroupingOffset);
+    removeCoherentNoise(waveLessCoherentItr, filteredWaveformsItr, intrinsicRMSItr, selectValsItr, correctedMediansItr, numChannels, fCoherentNoiseGrouping);
 
     std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point funcStopTime = std::chrono::high_resolution_clock::now();
@@ -534,7 +534,7 @@ void icarus_signal_processing::Denoiser2D_Hough::operator()(ArrayFloat::iterator
 void icarus_signal_processing::Denoising::removeCoherentNoise(ArrayFloat::iterator       waveLessCoherentItr,
                                                               ArrayFloat::const_iterator filteredWaveformsItr,
                                                               ArrayFloat::iterator       intrinsicRMSItr,
-                                                              ArrayBool::iterator        selectValsItr,
+                                                              ArrayBool::const_iterator  selectValsItr,
                                                               ArrayFloat::iterator       correctedMediansItr,
                                                               const unsigned int         numChannels,
                                                               const unsigned int         grouping,
@@ -626,7 +626,7 @@ void icarus_signal_processing::Denoising::removeCoherentNoise(ArrayFloat::iterat
 
                 // Try to improve by throwing out the values at the extremes
                 std::transform(v.begin(),v.begin()+idxV,v.begin(),std::bind(std::minus<float>(),std::placeholders::_1,median));
-                float rms = std::sqrt(std::inner_product(v.begin(),v.begin()+idxV,v.begin(),0.) / float(v.size()));
+                float rms = std::sqrt(std::inner_product(v.begin(),v.begin()+idxV,v.begin(),0.) / float(idxV));
 
                 std::sort(v.begin(),v.begin()+idxV,[](const auto& left,const auto& right){return std::abs(left) < std::abs(right);});
 
@@ -661,6 +661,92 @@ void icarus_signal_processing::Denoising::removeCoherentNoise(ArrayFloat::iterat
             for (size_t k=i*grouping; k<(i+1)*grouping; ++k) v[idxV++] = waveLessCoherentItr[k][j];
             rms = std::sqrt(std::inner_product(v.begin(), v.begin()+idxV, v.begin(), 0.) / float(v.size()));
             intrinsicRMSItr[i][j] = rms;
+        }
+    }
+  
+    return;
+}
+
+void icarus_signal_processing::Denoising::removeCoherentNoise(ArrayFloat::iterator       waveLessCoherentItr,
+                                                              ArrayFloat::const_iterator filteredWaveformsItr,
+                                                              ArrayFloat::iterator       intrinsicRMSItr,
+                                                              ArrayBool::iterator        selectValsItr,
+                                                              ArrayFloat::iterator       correctedMediansItr,
+                                                              const unsigned int         numChannels,
+                                                              const unsigned int         grouping) const
+{
+    auto   nTicks  = filteredWaveformsItr->size();
+    size_t nGroups = numChannels / grouping;
+
+    // get an instance of the waveform tools
+    icarus_signal_processing::WaveformTools<float> waveformTools;
+
+    VectorFloat v(grouping);
+
+    for (size_t i=0; i<nTicks; ++i) 
+    {
+        for (size_t j=0; j<nGroups; ++j) 
+        {
+            size_t group_start = j * grouping;
+            size_t group_end = (j+1) * grouping;
+
+            // Compute median.
+            size_t idxV(0);
+
+            for (size_t c=group_start; c<group_end; ++c) 
+            {
+                if (!selectValsItr[c][i]) v[idxV++] = filteredWaveformsItr[c][i];
+            }
+
+            float median(0.);
+
+            // If we have values which are not "protected" then compute the median
+            if (idxV > 0)
+            {
+                std::fill(v.begin()+idxV,v.end(),v.back());
+
+                if (idxV > 3) waveformTools.triangleSmooth(v,v);
+
+                median   = getMedian(v,idxV);
+
+                // Try to improve by throwing out the values at the extremes
+                std::transform(v.begin(),v.begin()+idxV,v.begin(),std::bind(std::minus<float>(),std::placeholders::_1,median));
+                float rms = std::sqrt(std::inner_product(v.begin(),v.begin()+idxV,v.begin(),0.) / float(idxV));
+
+                std::sort(v.begin(),v.begin()+idxV,[](const auto& left,const auto& right){return std::abs(left) < std::abs(right);});
+
+                while(idxV > 0)
+                {
+                    if (std::abs(v[idxV-1]) < 1.75 * rms) break;
+                    idxV--;
+                }
+
+                // Try to get the improved value for the median. Note we have to add to the previously calculated quantity since it
+                // was subtracted from the vector of values already. 
+                if (idxV > 5) median += getMedian(v,idxV);
+            }
+
+            for (size_t k = group_start; k < group_end; k++) correctedMediansItr[k][i] = median;
+        }
+    }
+
+    // Now compute the rms for the corrected waveforms
+    for (size_t i=0; i<nGroups; ++i) 
+    {
+        for (size_t j=0; j<nTicks; ++j) 
+        {
+            size_t idxV(0);
+                
+            // Add correction
+            for (size_t k=i*grouping; k<(i+1)*grouping; ++k) 
+            {
+                float median = correctedMediansItr[k][j];
+
+                waveLessCoherentItr[k][j] = filteredWaveformsItr[k][j] - median;
+                v[idxV++]                 = waveLessCoherentItr[k][j];
+            }
+
+            intrinsicRMSItr[i][j] = std::sqrt(std::inner_product(v.begin(), v.begin()+idxV, v.begin(), 0.) / float(v.size()));
         }
     }
   

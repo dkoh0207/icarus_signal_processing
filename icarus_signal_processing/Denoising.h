@@ -53,9 +53,17 @@ public:
     void removeCoherentNoise(ArrayFloat::iterator,
                              ArrayFloat::const_iterator,
                              ArrayFloat::iterator,
-                             ArrayBool::iterator,
+                             ArrayBool::const_iterator,
                              ArrayFloat::iterator,
                              const unsigned int,
+                             const unsigned int,
+                             const unsigned int ) const;
+
+    void removeCoherentNoise(ArrayFloat::iterator,
+                             ArrayFloat::const_iterator,
+                             ArrayFloat::iterator,
+                             ArrayBool::iterator,
+                             ArrayFloat::iterator,
                              const unsigned int,
                              const unsigned int ) const;
     
