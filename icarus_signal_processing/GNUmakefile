@@ -3,15 +3,15 @@
 #
 
 # specific names for this package
-SOURCES = $(wildcard *.cxx)
-FMWK_HEADERS = LinkDef.h
-HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
+SOURCES = $(wildcard *.cxx) $(wildcard */*.cxx)
+# FMWK_HEADERS = LinkDef.h ./Filters/LinkDef.h ./Detection/LinkDef.h
+# HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
+HEADERS = $(wildcard *.h) $(wildcard */*.h)
 
 # include options for this package
-INCFLAGS  = -I. \
-			-I/sdf/group/neutrino/koh0207/DSP/icarus_signal_processing/icarus_signal_processing/Filters \
-			-I/sdf/group/neutrino/koh0207/DSP/icarus_signal_processing/icarus_signal_processing/Detection
-CXXFLAGS=-Werror
+INCLUDE := -I. 
+INCFLAGS+=$(INCLUDE)
+CXXFLAGS+=$(INCLUDE)
 
 # platform-specific options
 OSNAME          = $(shell uname -s)

@@ -2,6 +2,7 @@
 #define __icarus_signal_processing_LINEDETECTION_CXX__
 
 #include "LineDetection.h"
+#include "MorphologicalFunctions2D.h"
 
 
 void icarus_signal_processing::LineDetection::HoughTransform(
@@ -57,6 +58,128 @@ void icarus_signal_processing::LineDetection::HoughTransform(
     }
   }
 
+  return;
+}
+
+
+int icarus_signal_processing::LineDetection::CartesianHoughTransform(
+  const Array2D<bool>& binary2D,
+  Array2D<int>& accumulator2D,
+  const float maxAngleDev,
+  const int thetaSteps) const
+{
+  const double pi = 3.141592653589793238462643383279502884;
+
+  // assert(maxAngleDev < 90);
+
+  const int numChannels = binary2D.size();
+  const int numTicks = binary2D.at(0).size();
+
+  const float maxAngle = ((float) maxAngleDev) / ((float) 180) * (float) pi;
+  const float dtheta = 2.0 * maxAngle / ((float) 2 * thetaSteps);
+
+  std::vector<float> slopeTab(thetaSteps * 2);
+  for (int i=0; i< thetaSteps; ++i) {
+    // 0 ~ maxAngle
+    slopeTab[i * 2] = (float) std::tan(i * dtheta);
+    // 0 ~ -maxAngle
+    slopeTab[i * 2+1] = (float) -std::tan(i * dtheta);
+  }
+
+  int padding = ((int) numChannels * std::tan(maxAngle) + 1);
+
+  // Accumulator for slope and tick-intercept 
+  accumulator2D.resize(2 * thetaSteps);
+  for (auto& v : accumulator2D) {
+    v.resize(numTicks + 2 * padding);
+  }
+
+  for (int i=0; i<numChannels; ++i) {
+    for (int j=0; j<numTicks; ++j) {
+      if (binary2D[i][j]) {
+        // 0 ~ -maxAngle
+        for (int m=1; m<thetaSteps; ++m) {
+          const int intercept = (int) (slopeTab[2*(thetaSteps-m)+1] * ((float) i));
+          accumulator2D[m][padding + j - intercept] += 1;
+        }
+        for (int m=0; m<thetaSteps; ++m) {
+          // Process positive angles
+          const int intercept = (int) (slopeTab[2*m] * ((float) i));
+          accumulator2D[thetaSteps + m][padding + j - intercept] += 1;
+        }
+      }
+    }
+  }
+
+  // Run NMS
+  return padding;
+}
+
+
+
+void icarus_signal_processing::LineDetection::simpleFastNMS(
+  const Array2D<int>& accumulator2D,
+  std::vector<int>& rhoIndex,
+  std::vector<int>& thetaIndex,
+  const int threshold,
+  const int sx,
+  const int sy) const
+{
+  simpleFastNMS<int>(accumulator2D, rhoIndex, thetaIndex, threshold, sx, sy);
+}
+
+void icarus_signal_processing::LineDetection::simpleFastNMS(
+  const Array2D<long>& accumulator2D,
+  std::vector<int>& rhoIndex,
+  std::vector<int>& thetaIndex,
+  const int threshold,
+  const int sx,
+  const int sy) const
+{
+  simpleFastNMS<long>(accumulator2D, rhoIndex, thetaIndex, threshold, sx, sy);
+}
+
+template <typename T>
+void icarus_signal_processing::LineDetection::simpleFastNMS(
+  const Array2D<T>& accumulator2D,
+  std::vector<int>& rhoIndex,
+  std::vector<int>& thetaIndex,
+  const T threshold,
+  const int fStructuringElementX,
+  const int fStructuringElementY) const
+{
+  const int numTheta = accumulator2D.size();
+  const int numIntercept = accumulator2D.at(0).size();
+
+  icarus_signal_processing::Morph2DFast morph2d;
+
+  Array2D<T> tempBuffer(numTheta);
+  for (auto& v : tempBuffer) {
+    v.resize(numIntercept);
+  }
+
+  // The local maximum of the accumulator array is obtained by
+  // selecting points whose dilation matches the original image.
+
+  icarus_signal_processing::Dilation2D(fStructuringElementX, fStructuringElementY)(accumulator2D, numTheta, tempBuffer.begin());
+
+  std::unordered_map<long, LabeledPoint> edges;
+
+  int count_id = 1;
+
+  for (int i=0; i<numTheta; ++i) {
+    for (int j=0; j<numIntercept; ++j) {
+      if ((std::abs(accumulator2D[i][j] - tempBuffer[i][j]) < 0.0001) && 
+            (accumulator2D[i][j] > (T) threshold)) {
+        long cantorEnum = ((i + j) * (i + j + 1) / 2) + j;
+        LabeledPoint p = {i, j, count_id};
+        rhoIndex.push_back(j);
+        thetaIndex.push_back(i);
+        edges.emplace(std::make_pair(cantorEnum, p));
+        count_id++;
+      }
+    }
+  }
   return;
 }
 
@@ -361,6 +484,63 @@ void icarus_signal_processing::LineDetection::drawLine(
     }
   }
   return;
+}
+
+
+void icarus_signal_processing::LineDetection::drawLine2(
+  Array2D<bool>& newSelectVals,
+  const int &interceptIndex,
+  const float &theta, //radians
+  const int &padding) const
+{
+  const int numChannels = newSelectVals.size();
+  const int numTicks = newSelectVals.at(0).size();
+
+  int channelOffset = 0;
+  int tickAxisIntercept = 0;
+
+  float eps = 0.001;
+  float slope = std::tan(theta);
+  int sign =  ( (int) (slope > 0) - (int) (slope < 0) );
+
+  // Compute tick axis intercept
+  if ( (padding < interceptIndex) && (interceptIndex <= (numTicks + padding) ))
+  {  
+    tickAxisIntercept = interceptIndex - padding;
+  } 
+  else if (padding > interceptIndex) 
+  {
+    channelOffset = ( (float) (padding - interceptIndex) ) / (std::abs(slope) + eps);
+    tickAxisIntercept = 0;
+  }
+  else {
+    tickAxisIntercept = numTicks;
+    channelOffset = ( (float) (interceptIndex - numTicks - padding)) / (std::abs(slope) + eps);
+  }
+
+
+  // Bresenham's Line Drawing Algorithm
+  // Since we are only interested in isochronous tracks, safe to assume
+  // change in angle is greater than change in ticks. 
+
+  int ix = channelOffset;
+  int iy = tickAxisIntercept;
+
+  float error = 0.0;
+  float slopeAbs = std::abs(slope);
+
+  while ( (ix < numChannels) && (iy < numTicks) && (iy >= 0) ) {
+    newSelectVals[ix][iy] = true;
+    error += slopeAbs;
+    ix++; 
+    if (error > 0.5) {
+      iy += sign;
+      error = error - 1.0;
+    }
+  }
+
+  return;
+
 }
 
 
