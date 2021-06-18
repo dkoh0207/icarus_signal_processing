@@ -45,6 +45,7 @@ public:
    */
    virtual void operator()(const Waveform<bool>&,   Waveform<bool>&)   const = 0;
    virtual void operator()(const Waveform<short>&,  Waveform<short>&)  const = 0;
+   virtual void operator()(const Waveform<int>&,    Waveform<int>&)    const = 0;
    virtual void operator()(const Waveform<float>&,  Waveform<float>&)  const = 0;
    virtual void operator()(const Waveform<double>&, Waveform<double>&) const = 0;
    //@}
@@ -77,6 +78,7 @@ public:
     */
     void operator()(const Waveform<bool>&,   Waveform<bool>&)   const override;
     void operator()(const Waveform<short>&,  Waveform<short>&)  const override;
+    void operator()(const Waveform<int>&,    Waveform<int>&)    const override;
     void operator()(const Waveform<float>&,  Waveform<float>&)  const override;
     void operator()(const Waveform<double>&, Waveform<double>&) const override;
 
@@ -111,6 +113,7 @@ public:
     */
     void operator()(const Waveform<bool>&,   Waveform<bool>&)   const override;
     void operator()(const Waveform<short>&,  Waveform<short>&)  const override;
+    void operator()(const Waveform<int>&,    Waveform<int>&)    const override;
     void operator()(const Waveform<float>&,  Waveform<float>&)  const override;
     void operator()(const Waveform<double>&, Waveform<double>&) const override;
 
@@ -145,6 +148,7 @@ public:
     */
     void operator()(const Waveform<bool>&,   Waveform<bool>&)   const override;
     void operator()(const Waveform<short>&,  Waveform<short>&)  const override;
+    void operator()(const Waveform<int>&,    Waveform<int>&)    const override;
     void operator()(const Waveform<float>&,  Waveform<float>&)  const override;
     void operator()(const Waveform<double>&, Waveform<double>&) const override;
 
@@ -179,6 +183,7 @@ public:
     */
     void operator()(const Waveform<bool>&,   Waveform<bool>&)   const override;
     void operator()(const Waveform<short>&,  Waveform<short>&)  const override;
+    void operator()(const Waveform<int>&,    Waveform<int>&)    const override;
     void operator()(const Waveform<float>&,  Waveform<float>&)  const override;
     void operator()(const Waveform<double>&, Waveform<double>&) const override;
 
@@ -213,6 +218,7 @@ public:
     */
     void operator()(const Waveform<bool>&,   Waveform<bool>&)   const override;
     void operator()(const Waveform<short>&,  Waveform<short>&)  const override;
+    void operator()(const Waveform<int>&,    Waveform<int>&)    const override;
     void operator()(const Waveform<float>&,  Waveform<float>&)  const override;
     void operator()(const Waveform<double>&, Waveform<double>&) const override;
 
@@ -247,6 +253,7 @@ public:
     */
     void operator()(const Waveform<bool>&,   Waveform<bool>&)   const override;
     void operator()(const Waveform<short>&,  Waveform<short>&)  const override;
+    void operator()(const Waveform<int>&,    Waveform<int>&)    const override;
     void operator()(const Waveform<float>&,  Waveform<float>&)  const override;
     void operator()(const Waveform<double>&, Waveform<double>&) const override;
 
@@ -280,6 +287,7 @@ public:
     */
     void operator()(const Waveform<bool>&,   Waveform<bool>&)   const override;
     void operator()(const Waveform<short>&,  Waveform<short>&)  const override;
+    void operator()(const Waveform<int>&,    Waveform<int>&)    const override;
     void operator()(const Waveform<float>&,  Waveform<float>&)  const override;
     void operator()(const Waveform<double>&, Waveform<double>&) const override;
 

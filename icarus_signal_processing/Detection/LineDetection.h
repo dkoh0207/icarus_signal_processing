@@ -81,30 +81,14 @@ namespace icarus_signal_processing {
         const int threshold,
         const int sx,
         const int sy) const;
-
-      void simpleFastNMS(
-        const Array2D<long>& accumulator2D,
-        std::vector<int>& rhoIndex,
-        std::vector<int>& thetaIndex,
-        const int threshold,
-        const int sx,
-        const int sy) const;
-
-      template <typename T>
-      void simpleFastNMS(
-        const Array2D<T>& accumulator2D,
-        std::vector<int>& rhoIndex,
-        std::vector<int>& thetaIndex,
-        const T threshold,
-        const int sx,
-        const int sy) const;
-
-      void drawLine2(
-        Array2D<bool>& newSelectVals,
-        const int &interceptIndex,
-        const float &theta,
-        const int &padding) const;
-
+//
+//      void simpleFastNMS(
+//        const Array2D<long>& accumulator2D,
+//        std::vector<int>& rhoIndex,
+//        std::vector<int>& thetaIndex,
+//        const int threshold,
+//        const int sx,
+//        const int sy) const;
       
       void FindPeaksNMS(const Array2D<int>& accumulator2D,
                         std::vector<int>& rhoIndex,

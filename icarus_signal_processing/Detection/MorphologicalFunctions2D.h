@@ -46,6 +46,7 @@ public:
    *  @param fragment            The artdaq fragment to process
    */
    virtual void operator()(ArrayFloat::const_iterator, const unsigned int, ArrayFloat::iterator)  const = 0;
+   virtual void operator()(ArrayInt::const_iterator,   const unsigned int, ArrayInt::iterator  )  const = 0;
    virtual void operator()(ArrayBool::const_iterator,  const unsigned int, ArrayBool::iterator )  const = 0;
 };
 
@@ -77,6 +78,7 @@ public:
     *  @brief Interface functions which provided templated access
     */
     void operator()(ArrayFloat::const_iterator,  const unsigned int, ArrayFloat::iterator)  const override;
+    void operator()(ArrayInt::const_iterator,    const unsigned int, ArrayInt::iterator  )  const override;
     void operator()(ArrayBool::const_iterator,   const unsigned int, ArrayBool::iterator )  const override;
 
 private:
@@ -112,6 +114,7 @@ public:
     *  @brief Interface functions which provided templated access
     */
     void operator()(ArrayFloat::const_iterator,  const unsigned int, ArrayFloat::iterator)  const override;
+    void operator()(ArrayInt::const_iterator,    const unsigned int, ArrayInt::iterator  )  const override;
     void operator()(ArrayBool::const_iterator,   const unsigned int, ArrayBool::iterator )  const override;
 
 private:
@@ -147,6 +150,7 @@ public:
     *  @brief Interface functions which provided templated access
     */
     void operator()(ArrayFloat::const_iterator,  const unsigned int, ArrayFloat::iterator)  const override;
+    void operator()(ArrayInt::const_iterator,    const unsigned int, ArrayInt::iterator  )  const override;
     void operator()(ArrayBool::const_iterator,   const unsigned int, ArrayBool::iterator )  const override;
 
 private:
@@ -183,6 +187,7 @@ public:
     *  @brief Interface functions which provided templated access
     */
     void operator()(ArrayFloat::const_iterator,  const unsigned int, ArrayFloat::iterator)  const override;
+    void operator()(ArrayInt::const_iterator,    const unsigned int, ArrayInt::iterator  )  const override;
     void operator()(ArrayBool::const_iterator,   const unsigned int, ArrayBool::iterator )  const override;
 
 private:
@@ -218,6 +223,7 @@ public:
     *  @brief Interface functions which provided templated access
     */
     void operator()(ArrayFloat::const_iterator,  const unsigned int, ArrayFloat::iterator)  const override;
+    void operator()(ArrayInt::const_iterator,    const unsigned int, ArrayInt::iterator  )  const override;
     void operator()(ArrayBool::const_iterator,   const unsigned int, ArrayBool::iterator )  const override;
 
 private:
@@ -256,6 +262,14 @@ public:
     void operator()(ArrayFloat::const_iterator waveformIn,  const unsigned int nChannels, ArrayFloat::iterator opening)  const override
     {
         ArrayFloat temp(nChannels);
+
+        Erosion2D (fStructuringElementX,fStructuringElementY)(waveformIn, nChannels, temp.begin());
+        Dilation2D(fStructuringElementX,fStructuringElementY)(temp.begin(),       nChannels, opening);
+    }
+
+    void operator()(ArrayInt::const_iterator waveformIn,  const unsigned int nChannels, ArrayInt::iterator opening)  const override
+    {
+        ArrayInt temp(nChannels);
 
         Erosion2D (fStructuringElementX,fStructuringElementY)(waveformIn, nChannels, temp.begin());
         Dilation2D(fStructuringElementX,fStructuringElementY)(temp.begin(),       nChannels, opening);
@@ -303,6 +317,14 @@ public:
     void operator()(ArrayFloat::const_iterator waveformIn, const unsigned int nChannels, ArrayFloat::iterator closing)  const override
     {
         ArrayFloat temp(nChannels);
+
+        Dilation2D(fStructuringElementX,fStructuringElementY)(waveformIn, nChannels, temp.begin());
+        Erosion2D( fStructuringElementX,fStructuringElementY)(temp.begin(),       nChannels, closing);
+    }
+
+    void operator()(ArrayInt::const_iterator waveformIn, const unsigned int nChannels, ArrayInt::iterator closing)  const override
+    {
+        ArrayInt temp(nChannels);
 
         Dilation2D(fStructuringElementX,fStructuringElementY)(waveformIn, nChannels, temp.begin());
         Erosion2D( fStructuringElementX,fStructuringElementY)(temp.begin(),       nChannels, closing);

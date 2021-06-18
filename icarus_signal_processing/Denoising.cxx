@@ -2,7 +2,7 @@
 #define __SIGPROC_TOOLS_DENOISING_CXX__
 
 #include "Denoising.h"
-#include "MorphologicalFunctions2D.h"
+#include "icarus_signal_processing/Detection/MorphologicalFunctions2D.h"
 #include "icarus_signal_processing/Detection/LineDetection.h"
 #include "WaveformTools.h"
 
@@ -547,10 +547,10 @@ icarus_signal_processing::Denoiser2D_RestrictedHough::Denoiser2D_RestrictedHough
               fCoherentNoiseGrouping(coherentGrouping),
               fCoherentNoiseGroupingOffset(groupingOffset),
               fMorphologicalWindow(morphWindow),
-              fOutputStats(outputStats),
               fMaxAngleDev(maxAngleDev),
               fThetaSteps(thetaSteps),
-              fHoughThreshold(houghThreshold)
+              fHoughThreshold(houghThreshold),
+              fOutputStats(outputStats)
 {}
 
 void icarus_signal_processing::Denoiser2D_RestrictedHough::operator()(ArrayFloat::iterator             waveLessCoherentItr,
@@ -601,7 +601,7 @@ void icarus_signal_processing::Denoiser2D_RestrictedHough::operator()(ArrayFloat
     lineModule.simpleFastNMS(accumulator2D, interceptIndex, angleIndex, fHoughThreshold, 7, 7);
 
     // Draw Lines to new refined protection region array
-    for (int i = 0; i < interceptIndex.size(); ++i) {
+    for (size_t i = 0; i < interceptIndex.size(); ++i) {
         float angle = ((float) angleIndex[i] - (float) fThetaSteps) * dtheta;
         lineModule.drawLine2(localSelectVals, interceptIndex[i], angle, padding);
     }

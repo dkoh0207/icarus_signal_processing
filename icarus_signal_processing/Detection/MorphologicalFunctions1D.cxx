@@ -110,6 +110,12 @@ void Dilation1D::operator()(const Waveform<short>& waveformVec,
     getDilation<short>(waveformVec, dilationVec);
 }
 
+void Dilation1D::operator()(const Waveform<int>& waveformVec,  
+                            Waveform<int>&       dilationVec)  const
+{
+    getDilation<int>(waveformVec, dilationVec);
+}
+
 void Dilation1D::operator()(const Waveform<float>& waveformVec,  
                             Waveform<float>&       dilationVec)  const
 {
@@ -295,6 +301,12 @@ void Erosion1D::operator()(const Waveform<short>& waveformVec,
     getErosion<short>(waveformVec, erosionVec);
 }
 
+void Erosion1D::operator()(const Waveform<int>& waveformVec,  
+                           Waveform<int>&       erosionVec)  const
+{
+    getErosion<int>(waveformVec, erosionVec);
+}
+
 void Erosion1D::operator()(const Waveform<float>& waveformVec,  
                            Waveform<float>&       erosionVec)  const
 {
@@ -397,6 +409,12 @@ void Gradient1D::operator()(const Waveform<short>& waveformVec,
     getGradient<short>(waveformVec, gradientVec);
 }
 
+void Gradient1D::operator()(const Waveform<int>& waveformVec,  
+                            Waveform<int>&       gradientVec)  const
+{
+    getGradient<int>(waveformVec, gradientVec);
+}
+
 void Gradient1D::operator()(const Waveform<float>& waveformVec,  
                             Waveform<float>&       gradientVec)  const
 {
@@ -454,6 +472,12 @@ void Average1D::operator()(const Waveform<short>& waveformVec,
                            Waveform<short>&       averageVec)  const
 {
     getAverage<short>(waveformVec, averageVec);
+}
+
+void Average1D::operator()(const Waveform<int>& waveformVec,  
+                           Waveform<int>&       averageVec)  const
+{
+    getAverage<int>(waveformVec, averageVec);
 }
 
 void Average1D::operator()(const Waveform<float>& waveformVec,  
@@ -518,6 +542,12 @@ void Median1D::operator()(const Waveform<short>& waveformVec,
                           Waveform<short>&       medianVec)  const
 {
     getMedian<short>(waveformVec, medianVec);
+}
+
+void Median1D::operator()(const Waveform<int>& waveformVec,  
+                          Waveform<int>&       medianVec)  const
+{
+    getMedian<int>(waveformVec, medianVec);
 }
 
 void Median1D::operator()(const Waveform<float>& waveformVec,  

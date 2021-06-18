@@ -125,35 +125,12 @@ void icarus_signal_processing::LineDetection::simpleFastNMS(
   const int sx,
   const int sy) const
 {
-  simpleFastNMS<int>(accumulator2D, rhoIndex, thetaIndex, threshold, sx, sy);
-}
-
-void icarus_signal_processing::LineDetection::simpleFastNMS(
-  const Array2D<long>& accumulator2D,
-  std::vector<int>& rhoIndex,
-  std::vector<int>& thetaIndex,
-  const int threshold,
-  const int sx,
-  const int sy) const
-{
-  simpleFastNMS<long>(accumulator2D, rhoIndex, thetaIndex, threshold, sx, sy);
-}
-
-template <typename T>
-void icarus_signal_processing::LineDetection::simpleFastNMS(
-  const Array2D<T>& accumulator2D,
-  std::vector<int>& rhoIndex,
-  std::vector<int>& thetaIndex,
-  const T threshold,
-  const int fStructuringElementX,
-  const int fStructuringElementY) const
-{
   const int numTheta = accumulator2D.size();
   const int numIntercept = accumulator2D.at(0).size();
 
-  icarus_signal_processing::Morph2DFast morph2d;
+//  icarus_signal_processing::Morph2DFast morph2d;
 
-  Array2D<T> tempBuffer(numTheta);
+  Array2D<int> tempBuffer(numTheta);
   for (auto& v : tempBuffer) {
     v.resize(numIntercept);
   }
@@ -161,7 +138,7 @@ void icarus_signal_processing::LineDetection::simpleFastNMS(
   // The local maximum of the accumulator array is obtained by
   // selecting points whose dilation matches the original image.
 
-  icarus_signal_processing::Dilation2D(fStructuringElementX, fStructuringElementY)(accumulator2D, numTheta, tempBuffer.begin());
+  icarus_signal_processing::Dilation2D(sx,sy)(accumulator2D.begin(), numTheta, tempBuffer.begin());
 
   std::unordered_map<long, LabeledPoint> edges;
 
@@ -170,7 +147,7 @@ void icarus_signal_processing::LineDetection::simpleFastNMS(
   for (int i=0; i<numTheta; ++i) {
     for (int j=0; j<numIntercept; ++j) {
       if ((std::abs(accumulator2D[i][j] - tempBuffer[i][j]) < 0.0001) && 
-            (accumulator2D[i][j] > (T) threshold)) {
+            (accumulator2D[i][j] > (int) threshold)) {
         long cantorEnum = ((i + j) * (i + j + 1) / 2) + j;
         LabeledPoint p = {i, j, count_id};
         rhoIndex.push_back(j);
@@ -182,6 +159,49 @@ void icarus_signal_processing::LineDetection::simpleFastNMS(
   }
   return;
 }
+
+//void icarus_signal_processing::LineDetection::simpleFastNMS(
+//  const Array2D<long>& accumulator2D,
+//  std::vector<int>& rhoIndex,
+//  std::vector<int>& thetaIndex,
+//  const int threshold,
+//  const int sx,
+//  const int sy) const
+//{
+//  const int numTheta = accumulator2D.size();
+//  const int numIntercept = accumulator2D.at(0).size();
+//
+////  icarus_signal_processing::Morph2DFast morph2d;
+//
+//  Array2D<long> tempBuffer(numTheta);
+//  for (auto& v : tempBuffer) {
+//    v.resize(numIntercept);
+//  }
+//
+//  // The local maximum of the accumulator array is obtained by
+//  // selecting points whose dilation matches the original image.
+//
+//  icarus_signal_processing::Dilation2D(sx,sy)(accumulator2D.begin(), numTheta, tempBuffer.begin());
+//
+//  std::unordered_map<long, LabeledPoint> edges;
+//
+//  int count_id = 1;
+//
+//  for (int i=0; i<numTheta; ++i) {
+//    for (int j=0; j<numIntercept; ++j) {
+//      if ((std::abs(accumulator2D[i][j] - tempBuffer[i][j]) < 0.0001) && 
+//            (accumulator2D[i][j] > (long) threshold)) {
+//        long cantorEnum = ((i + j) * (i + j + 1) / 2) + j;
+//        LabeledPoint p = {i, j, count_id};
+//        rhoIndex.push_back(j);
+//        thetaIndex.push_back(i);
+//        edges.emplace(std::make_pair(cantorEnum, p));
+//        count_id++;
+//      }
+//    }
+//  }
+//  return;
+//}
 
 
 void icarus_signal_processing::LineDetection::FindPeaksNMS(
