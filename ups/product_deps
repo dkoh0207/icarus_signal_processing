@@ -2,7 +2,7 @@
 
 # The *parent* line must the first non-commented line and defines this product and version
 # The version should be of the form vxx_yy_zz (e.g. v01_02_03)
-parent icarus_signal_processing v09_24_02
+parent icarus_signal_processing v09_26_00
 defaultqual e19
 
 # These optional lines define the installed directories where headers,
@@ -32,7 +32,7 @@ bindir	fq_dir		bin
 
 product          version
 fftw            v3_3_8a
-root            v6_22_06a
+root            v6_22_08b
 
 cetbuildtools	v7_17_01	-	only_for_build
 end_product_list
