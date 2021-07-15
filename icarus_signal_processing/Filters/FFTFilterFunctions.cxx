@@ -169,14 +169,14 @@ LowPassButterworthFilter::LowPassButterworthFilter(unsigned int threshold,
                 fFrequencySize(size)
 {
 
-    if (threshold < 1 or threshold > size / 2) 
+    if (fThreshold < 1 or fThreshold > size / 2) 
             throw std::runtime_error("FrequencyFilters: Thresholding frequency bin must be at least one and less than half of total bin count.");
 
     fFFT = std::make_unique<icarus_signal_processing::ICARUSFFT<float>>();
 
     fFilterVec.resize(fFrequencySize);
 
-    float d0 = (float) threshold;
+    float d0 = (float) fThreshold;
 
     for (size_t i = 0; i < fFrequencySize / 2; i++) 
     {
@@ -233,14 +233,14 @@ HighPassButterworthFilter::HighPassButterworthFilter(unsigned int threshold,
                 fFrequencySize(size)
 {
 
-    if (threshold < 1 or threshold > size / 2) 
+    if (fThreshold < 1 or fThreshold > size / 2) 
             throw std::runtime_error("FrequencyFilters: Thresholding frequency bin must be at least one and less than half of total bin count.");
             
     fFFT = std::make_unique<icarus_signal_processing::ICARUSFFT<float>>();
 
     fFilterVec.resize(fFrequencySize);
 
-    float d0 = (float) threshold;
+    float d0 = (float) fThreshold;
 
     for (size_t i = 0; i < fFrequencySize / 2; i++) 
     {

@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <iostream>
 #include <functional>
+#include <unordered_map> 
 
 namespace icarus_signal_processing {
 
