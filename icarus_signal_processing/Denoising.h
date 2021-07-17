@@ -37,7 +37,7 @@ class Denoising
 {
 public:
     /// Default constructor
-    Denoising(bool outputStats) : fMPVec(4096), fOutputStats(outputStats) {}
+    Denoising(bool outputStats) : fMPVec(4096) {} //fOutputStats(outputStats) {}
 
     /// Default destructor
     ~Denoising(){}
@@ -74,7 +74,7 @@ private:
     // The code for the most probable calculation will need a std vector
     // We don't wnat to allocated/deallocate each call so have master copy here
     mutable std::vector<int> fMPVec;
-    bool                     fOutputStats;
+   // bool                     fOutputStats;
   
 };
 
@@ -198,10 +198,10 @@ public:
 
 private:
     const IMorphologicalFunctions2D* fFilterFunction;
-    const VectorFloat&               fThresholdVec;
+    // const VectorFloat&               fThresholdVec;
     unsigned int                     fCoherentNoiseGrouping;
-    unsigned int                     fCoherentNoiseGroupingOffset;
-    unsigned int                     fMorphologicalWindow;
+    // unsigned int                     fCoherentNoiseGroupingOffset;
+    // unsigned int                     fMorphologicalWindow;
     bool                             fOutputStats;
 };
 
@@ -228,7 +228,7 @@ private:
     const IMorphologicalFunctions2D* fFilterFunction;
     const VectorFloat&               fThresholdVec;
     unsigned int                     fCoherentNoiseGrouping;
-    unsigned int                     fCoherentNoiseGroupingOffset;
+   //  unsigned int                     fCoherentNoiseGroupingOffset;
     unsigned int                     fMorphologicalWindow;
     bool fOutputStats;
 
@@ -263,7 +263,7 @@ private:
     const IMorphologicalFunctions2D* fFilterFunction;
     const VectorFloat&               fThresholdVec;
     unsigned int                     fCoherentNoiseGrouping;
-    unsigned int                     fCoherentNoiseGroupingOffset;
+    // unsigned int                     fCoherentNoiseGroupingOffset;
     unsigned int                     fMorphologicalWindow;
     float                            fMaxAngleDev;
     unsigned int                     fThetaSteps;

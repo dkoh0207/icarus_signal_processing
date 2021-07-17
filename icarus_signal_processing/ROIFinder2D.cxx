@@ -30,8 +30,8 @@ icarus_signal_processing::ROIChainFilter::ROIChainFilter(size_t             FREQ
                                                          const unsigned int ADFILTER_SY,
                                                          const unsigned int BINARY_DILATION_SX,
                                                          const unsigned int BINARY_DILATION_SY,
-                                                         const float        GLOBAL_THRESHOLDING_FACTOR) : 
-                            fFrequencyThreshold(FREQUENCY_THRESHOLD),
+                                                         const float        GLOBAL_THRESHOLDING_FACTOR) //:
+                            /*fFrequencyThreshold(FREQUENCY_THRESHOLD),
                             fFrequency_filter_smoothness_order(FREQUENCY_FILTER_SMOOTHNESS_ORDER),
                             fFrequency_filter_mode(FREQUENCY_FILTER_MODE),
                             fMorphological_filter_name(MORPHOLOGICAL_FILTER_NAME),
@@ -48,7 +48,7 @@ icarus_signal_processing::ROIChainFilter::ROIChainFilter(size_t             FREQ
                             fADFilter_SY(ADFILTER_SY),
                             fBinary_Dilation_SX(BINARY_DILATION_SX),
                             fBinary_Dilation_SY(BINARY_DILATION_SY),
-                            fGlobal_Thresholding_Factor(GLOBAL_THRESHOLDING_FACTOR)
+                            fGlobal_Thresholding_Factor(GLOBAL_THRESHOLDING_FACTOR)*/
 
 {
     return;
@@ -252,7 +252,7 @@ icarus_signal_processing::ROICannyFilter::ROICannyFilter(const IFFTFilterFunctio
                                                          const unsigned int         BINARY_DILATION_SY) :
 //                            fMorphologyFilter(morphologyFilter),
                             fDenoising(denoising),
-                            fBilateralFilter(bilateralFilter),
+                            // fBilateralFilter(bilateralFilter),
                             fEdgeDetector(edgeDetector),
                             fADFilter_SX(ADFILTER_SX),
                             fADFilter_SY(ADFILTER_SY),

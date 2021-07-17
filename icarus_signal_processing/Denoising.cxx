@@ -377,9 +377,9 @@ icarus_signal_processing::Denoiser2D::Denoiser2D(const IMorphologicalFunctions2D
                                                  bool                             outputStats)      // If on will activate some timing statistics
             : Denoising(outputStats), 
               fFilterFunction(filterFunction),
-              fThresholdVec(thresholdVec),
+              // fThresholdVec(thresholdVec),
               fCoherentNoiseGrouping(coherentGrouping),
-              fMorphologicalWindow(morphWindow),
+              // fMorphologicalWindow(morphWindow),
               fOutputStats(outputStats)
 {}
 
@@ -395,29 +395,29 @@ void icarus_signal_processing::Denoiser2D::operator()(ArrayFloat::iterator      
     auto nTicks  = filteredWaveformsItr->size();
     auto nGroups = numChannels / fCoherentNoiseGrouping;
 
-    std::chrono::high_resolution_clock::time_point funcStartTime = std::chrono::high_resolution_clock::now();
+ //   std::chrono::high_resolution_clock::time_point funcStartTime = std::chrono::high_resolution_clock::now();
 
-    std::chrono::high_resolution_clock::time_point morphStart = funcStartTime;
+    // std::chrono::high_resolution_clock::time_point morphStart = funcStartTime;
 
     (*fFilterFunction)(filteredWaveformsItr, numChannels, morphedWaveformsItr);
 
-    std::chrono::high_resolution_clock::time_point morphStop  = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::time_point selStart = morphStop;
+   // std::chrono::high_resolution_clock::time_point morphStop  = std::chrono::high_resolution_clock::now();
+    // std::chrono::high_resolution_clock::time_point selStart = morphStop;
 
 //    getSelectVals(morphedWaveformsItr, selectValsItr, roiItr, fThresholdVec, numChannels, fCoherentNoiseGrouping, fMorphologicalWindow);
 
-    std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::time_point noiseStart = selStop;
+    //std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
+    // std::chrono::high_resolution_clock::time_point noiseStart = selStop;
 
     removeCoherentNoise(waveLessCoherentItr, filteredWaveformsItr, intrinsicRMSItr, selectValsItr, correctedMediansItr, numChannels, fCoherentNoiseGrouping);
 
-    std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::time_point funcStopTime = std::chrono::high_resolution_clock::now();
+    // std::chrono::high_resolution_clock::time_point noiseStop = std::chrono::high_resolution_clock::now();
+    // std::chrono::high_resolution_clock::time_point funcStopTime = std::chrono::high_resolution_clock::now();
   
-    std::chrono::duration<double> funcTime   = std::chrono::duration_cast<std::chrono::duration<double>>(funcStopTime - funcStartTime);
-    std::chrono::duration<double> morphTime  = std::chrono::duration_cast<std::chrono::duration<double>>(morphStop - morphStart);
-    std::chrono::duration<double> selTime    = std::chrono::duration_cast<std::chrono::duration<double>>(selStop - selStart);
-    std::chrono::duration<double> noiseTime  = std::chrono::duration_cast<std::chrono::duration<double>>(noiseStop - noiseStart);
+   // std::chrono::duration<double> funcTime   = std::chrono::duration_cast<std::chrono::duration<double>>(funcStopTime - funcStartTime);
+   // std::chrono::duration<double> morphTime  = std::chrono::duration_cast<std::chrono::duration<double>>(morphStop - morphStart);
+   // std::chrono::duration<double> selTime    = std::chrono::duration_cast<std::chrono::duration<double>>(selStop - selStart);
+   // std::chrono::duration<double> noiseTime  = std::chrono::duration_cast<std::chrono::duration<double>>(noiseStop - noiseStart);
   
     if (fOutputStats) std::cout << "*** Denoising 2D ***  - # channels: " << numChannels << ", ticks: " << nTicks << ", groups: " << nGroups << std::endl;
 
@@ -471,7 +471,7 @@ icarus_signal_processing::Denoiser2D_Hough::Denoiser2D_Hough(const IMorphologica
               fFilterFunction(filterFunction),
               fThresholdVec(thresholdVec),
               fCoherentNoiseGrouping(coherentGrouping),
-              fCoherentNoiseGroupingOffset(groupingOffset),
+              // fCoherentNoiseGroupingOffset(groupingOffset),
               fMorphologicalWindow(morphWindow),
               fOutputStats(outputStats)
 {}
@@ -545,7 +545,7 @@ icarus_signal_processing::Denoiser2D_RestrictedHough::Denoiser2D_RestrictedHough
               fFilterFunction(filterFunction),
               fThresholdVec(thresholdVec),
               fCoherentNoiseGrouping(coherentGrouping),
-              fCoherentNoiseGroupingOffset(groupingOffset),
+              // fCoherentNoiseGroupingOffset(groupingOffset),
               fMorphologicalWindow(morphWindow),
               fMaxAngleDev(maxAngleDev),
               fThetaSteps(thetaSteps),

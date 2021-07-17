@@ -93,7 +93,7 @@ public:
         IROIFinder2D::Array2D<float>&       finalErosion2D) const override;
 
 private:
-    size_t             fFrequencyThreshold;
+ /*   size_t             fFrequencyThreshold;
     size_t             fFrequency_filter_smoothness_order;
     size_t             fFrequency_filter_mode;
     char               fMorphological_filter_name;
@@ -112,6 +112,7 @@ private:
     const unsigned int fBinary_Dilation_SX; 
     const unsigned int fBinary_Dilation_SY;
     const float        fGlobal_Thresholding_Factor;
+*/
 };
 
 //class ROICannyFilter : virtual public IROIFinder2D
@@ -214,7 +215,7 @@ private:
 //    const IMorphologicalFunctions2D* fMorphologyFilter;
     const IDenoiser2D*               fDenoising;
     std::unique_ptr<ImageFilters>    fImageFilter;    ///< The image filter 
-    const BilateralFilters*          fBilateralFilter;
+ //   const BilateralFilters*          fBilateralFilter;
     const EdgeDetection*             fEdgeDetector;
 
     const unsigned int               fADFilter_SX;
