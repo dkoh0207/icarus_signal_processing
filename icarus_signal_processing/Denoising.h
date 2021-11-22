@@ -263,7 +263,7 @@ private:
     const IMorphologicalFunctions2D* fFilterFunction;
     const VectorFloat&               fThresholdVec;
     unsigned int                     fCoherentNoiseGrouping;
-    // unsigned int                     fCoherentNoiseGroupingOffset;
+    unsigned int                     fCoherentNoiseGroupingOffset;
     unsigned int                     fMorphologicalWindow;
     float                            fMaxAngleDev;
     unsigned int                     fThetaSteps;

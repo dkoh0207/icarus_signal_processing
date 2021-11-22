@@ -10,8 +10,7 @@
 #  make test
 #  make install
 #  make package (builds distribution tarfile)
-# ======================================================================
-
+# ======================================================================\
 
 cmake_minimum_required (VERSION 3.12...3.18 FATAL_ERROR)
 
@@ -38,12 +37,12 @@ cet_report_compiler_flags()
 
 # these are minimum required versions, not the actual product versions
 find_ups_product( fftw )
+find_ups_product( tbb )
 
 # macros for dictionary and simple_plugin
 include(CetMake)
 
 # add cet_find_library commands here when needed
-
 ##cet_find_library(FFTW_LIBRARY NAMES fftw3f fftw3 fftw3q fftw3l fftw3_threads fftw3f_threads fftw3q_threads PATHS $ENV{FFTW_LIBRARY} )
 cet_find_library(ICARUS_FFTW3_LIBRARY  NAMES fftw3  PATHS $ENV{FFTW_LIBRARY} )
 cet_find_library(ICARUS_FFTW3F_LIBRARY NAMES fftw3f PATHS $ENV{FFTW_LIBRARY} )

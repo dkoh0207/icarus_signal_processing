@@ -27,6 +27,8 @@
 #include <queue>
 #include <unordered_map>
 
+#include "tbb/concurrent_unordered_map.h"
+
 #include "DisjointSetForest.h"
 
 namespace icarus_signal_processing
@@ -92,6 +94,14 @@ namespace icarus_signal_processing
         Array2D<float> &gradient,
         Array2D<float> &direction) const;
 
+    // Outputs Radians
+    void SobelRads(
+        const Array2D<float> &input2D,
+        Array2D<float> &sobelX,
+        Array2D<float> &sobelY,
+        Array2D<float> &gradient,
+        Array2D<float> &direction) const;
+
     // Sobel Filtering via Separable 1D convolutions
     // Should give equivalent (due to edge effects, values may be slightly
     // different for one pixel boundary of the image) results while being
@@ -114,6 +124,14 @@ namespace icarus_signal_processing
         VectorFloat &outputRow) const;
 
     void SepSobel(
+        const Array2D<float> &input2D,
+        Array2D<float> &sobelX,
+        Array2D<float> &sobelY,
+        Array2D<float> &gradient,
+        Array2D<float> &direction) const;
+
+    // Outputs Radians
+    void SepSobelRads(
         const Array2D<float> &input2D,
         Array2D<float> &sobelX,
         Array2D<float> &sobelY,

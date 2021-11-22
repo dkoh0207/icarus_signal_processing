@@ -127,6 +127,32 @@ void icarus_signal_processing::EdgeDetection::Sobel(const Array2D<float> &input2
   return;
 }
 
+void icarus_signal_processing::EdgeDetection::SobelRads(const Array2D<float> &input2D,
+                                                    Array2D<float> &sobelX,
+                                                    Array2D<float> &sobelY,
+                                                    Array2D<float> &gradient,
+                                                    Array2D<float> &direction) const
+{
+  int numChannels = input2D.size();
+  int numTicks = input2D[0].size();
+
+  SobelX(input2D, sobelX);
+  SobelY(input2D, sobelY);
+
+  for (int i = 0; i < numChannels; ++i)
+  {
+    for (int j = 0; j < numTicks; ++j)
+    {
+      float g = sqrt(sobelX[i][j] * sobelX[i][j] + sobelY[i][j] * sobelY[i][j]);
+      gradient[i][j] = g;
+      float gradDir = atan2(sobelY[i][j], sobelX[i][j]);
+      direction[i][j] = gradDir;
+    }
+  }
+
+  return;
+}
+
 void icarus_signal_processing::EdgeDetection::SepSobel(const Array2D<float> &input2D,
                                                     Array2D<float> &sobelX,
                                                     Array2D<float> &sobelY,
@@ -152,6 +178,33 @@ void icarus_signal_processing::EdgeDetection::SepSobel(const Array2D<float> &inp
 
   return;
 }
+
+void icarus_signal_processing::EdgeDetection::SepSobelRads(const Array2D<float> &input2D,
+                                                           Array2D<float> &sobelX,
+                                                           Array2D<float> &sobelY,
+                                                           Array2D<float> &gradient,
+                                                           Array2D<float> &direction) const
+{
+  int numChannels = input2D.size();
+  int numTicks = input2D[0].size();
+
+  SepSobelX(input2D, sobelX);
+  SepSobelY(input2D, sobelY);
+
+  for (int i = 0; i < numChannels; ++i)
+  {
+    for (int j = 0; j < numTicks; ++j)
+    {
+      float g = sqrt(sobelX[i][j] * sobelX[i][j] + sobelY[i][j] * sobelY[i][j]);
+      gradient[i][j] = g;
+      float gradDir = atan2(sobelY[i][j], sobelX[i][j]);
+      direction[i][j] = gradDir;
+    }
+  }
+
+  return;
+}
+
 
 void icarus_signal_processing::EdgeDetection::SepSobelX(const Array2D<float> &input2D,
                                                         Array2D<float> &gradient) const
@@ -905,7 +958,7 @@ void icarus_signal_processing::EdgeDetection::Canny(const Array2D<float> &waveLe
         v.resize(numTicks);
     }
 
-    SepSobel(waveLessCoherent, sobelX, sobelY, gradient, direction);
+    SepSobelRads(waveLessCoherent, sobelX, sobelY, gradient, direction);
 
     // 1. Perform Edge-Preserving Smoothing
     // Here sx = 7, sy = 7, sigma_x = 10, sigma_y = 10, sigma_r = 30
@@ -1151,5 +1204,6 @@ void icarus_signal_processing::EdgeDetection::getDilation2D(const std::vector<st
     }
     return;
 }
+
 
 #endif

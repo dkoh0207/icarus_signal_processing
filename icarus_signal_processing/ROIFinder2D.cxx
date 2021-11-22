@@ -332,6 +332,11 @@ void icarus_signal_processing::ROICannyFilter::operator()(const IROIFinder2D::Ar
 
     std::cout << "==> Step 5: Perform Canny Edge Detection" << std::endl;
 
+    rois.resize(numChannels);
+    for (auto &v : rois) {
+        v.resize(numTicks);
+    }
+
     // 5. Apply Canny Edge Detection
     fEdgeDetector->Canny(waveLessCoherent, rois, fADFilter_SX, fADFilter_SY,
                          fSigma_x, fSigma_y, fSigma_r,

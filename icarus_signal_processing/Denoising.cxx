@@ -575,6 +575,7 @@ void icarus_signal_processing::Denoiser2D_RestrictedHough::operator()(ArrayFloat
     std::chrono::high_resolution_clock::time_point selStart = morphStop;
 
     ArrayBool roughSelectVals(numChannels,VectorBool(nTicks));
+    ArrayBool refinedSelectVals(numChannels, VectorBool(nTicks));
 
     // Rough protection regions from morphological thresholding
     getSelectVals(morphedWaveformsItr, roughSelectVals.begin(), roiItr, fThresholdVec, numChannels, fCoherentNoiseGrouping, fMorphologicalWindow);
@@ -607,10 +608,18 @@ void icarus_signal_processing::Denoiser2D_RestrictedHough::operator()(ArrayFloat
     }
 
     icarus_signal_processing::Dilation2D dilationFilter(7,7);
-    dilationFilter(localSelectVals.begin(), numChannels, roughSelectVals.begin()); // Store dilation in roughSelectVals
+    dilationFilter(localSelectVals.begin(), numChannels, refinedSelectVals.begin());
+
+    // Compute overlap between morphological threhsold and hough lines product
+    for (size_t channelIdx = 0; channelIdx < numChannels; channelIdx++) {
+        for (size_t tickIdx = 0; tickIdx < nTicks; ++tickIdx) {
+            refinedSelectVals[channelIdx][tickIdx] = refinedSelectVals[channelIdx][tickIdx] && roughSelectVals[channelIdx][tickIdx];
+        }
+    }
+
 
     for(size_t channelIdx = 0; channelIdx < numChannels; channelIdx++)
-        *(selectValsItr + channelIdx) = roughSelectVals[channelIdx];
+        *(selectValsItr + channelIdx) = refinedSelectVals[channelIdx];
 
     std::chrono::high_resolution_clock::time_point selStop  = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point noiseStart = selStop;

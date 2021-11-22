@@ -39,13 +39,13 @@ end_product_list
 
 # We now define allowed qualifiers and the corresponding qualifiers for the depdencies.
 # Make a table by adding columns before "notes".
-qualifier	    root	       fftw   notes
-e20:debug	    e20:p383b:debug      debug
-e20:prof	    e20:p383b:prof       prof
-e19:debug	    e19:p383b:debug      debug
-e19:prof	    e19:p383b:prof       prof
-c7:debug	    c7:p383b:debug       debug
-c7:prof		    c7:p383b:prof        prof
+qualifier	    root	             fftw    notes
+e20:debug	    e20:p383b:debug      debug  
+e20:prof	    e20:p383b:prof       prof   
+e19:debug	    e19:p383b:debug      debug  
+e19:prof	    e19:p383b:prof       prof   
+c7:debug	    c7:p383b:debug       debug  
+c7:prof		    c7:p383b:prof        prof   
 end_qualifier_list
 
 # Preserve tabs and formatting in emacs and vi / vim:

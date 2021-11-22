@@ -54,6 +54,7 @@ namespace icarus_signal_processing {
 
       int Find(const int x);
   };
+
 }
 
 #endif

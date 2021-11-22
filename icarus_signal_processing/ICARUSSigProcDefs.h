@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include <vector>
+#include "tbb/concurrent_vector.h"
 #include <map>
 
 namespace icarus_signal_processing
@@ -26,6 +27,18 @@ namespace icarus_signal_processing
       using ArrayFloat    = std::vector<VectorFloat>;
       using ArrayDouble   = std::vector<VectorDouble>;
       using ArrayBool     = std::vector<VectorBool>;
+
+      using ConcurrentVectorShort = tbb::concurrent_vector<short>;
+      using ConcurrentVectorInt = tbb::concurrent_vector<int>;
+      using ConcurrentVectorFloat = tbb::concurrent_vector<float>;
+      using ConcurrentVectorDouble = tbb::concurrent_vector<double>;
+      using ConcurrentVectorBool = tbb::concurrent_vector<bool>;
+
+      using ConcurrentArrayShort = tbb::concurrent_vector<ConcurrentVectorShort>;
+      using ConcurrentArrayInt = tbb::concurrent_vector<ConcurrentVectorInt>;
+      using ConcurrentArrayFloat = tbb::concurrent_vector<ConcurrentVectorFloat>;
+      using ConcurrentArrayDouble = tbb::concurrent_vector<ConcurrentVectorDouble>;
+      using ConcurrentArrayBool = tbb::concurrent_vector<ConcurrentVectorBool>;
 
 } // end sigproc namespace
 #endif
